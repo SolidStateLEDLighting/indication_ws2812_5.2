@@ -60,7 +60,7 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7F000000  
 
->Example5: Return to normal operation 
+>Example5: Return to normal operation  
 >All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7E000000  
