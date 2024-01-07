@@ -37,7 +37,7 @@ Fourth byte is off_time  -- the time the LEDs are off between cycles.
 The values of on_time and off_time are shared between both possible color sequences. 
 
 > [!WARNING]  
->If you use the Speical Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Speical Command of 0x0E (AUTO State) to return to normal activity.  
+>If you use the Special Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
 
 ## Examples: 
 
@@ -51,6 +51,11 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x40000000 | 0x03000000 | 0x00000000 | 0x00000000 | 0x00000100 | 0x00000015  
 >0x43000115 is our 32 bit value
 
+>Example3: Turn Red On continously  
+>Red Color  - Cycles - NoColor - Cycles On-Time  Off-Time  
+>0x1 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
+>0x70000000 
+
 >Example3: All Colors On continously  
 >All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
@@ -61,7 +66,7 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7F000000  
 
->Example5: Return to normal operation  
+>Example5: Return All Colors to normal operation  
 >All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7E000000  
