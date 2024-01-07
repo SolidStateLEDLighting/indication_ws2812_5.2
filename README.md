@@ -70,7 +70,7 @@ PLEASE CALL ON THIS SERVICE LIKE THIS:
 
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
-xQueueSendToBack(queHandleINDCmdRequest, &val, 30);
+xQueueSendToBack(queHandleCmdRequest, &val, 30);
 
 
 ## Abstractions
