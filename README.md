@@ -26,18 +26,16 @@ bits 23-16 set Blue  intensity
 **32 Bit Format:**
 MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\> LSB
 
-1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit
-\<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)
-\<Cycles\>   13 possible flashes - 0x01 though 0x0E (1 through 13) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.
+1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit  
+\<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  
+\<Cycles\>   13 possible flashes - 0x01 though 0x0E (1 through 13) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.  
 
-Second byte is the Second Color/Cycles.
-Third byte is on_time -- how long the color is on
-Fourth byte is off_time  -- the time the LEDs are off between cycles.
+Second byte is the Second Color/Cycles.  
+Third byte is on_time -- how long the color is on  
+Fourth byte is off_time  -- the time the LEDs are off between cycles.  
 
-The values of on_time and off_time are shared between both possible color sequences.
+The values of on_time and off_time are shared between both possible color sequences.  
 
-
-Assuming we have an RGB color offering:
 
 >Example1: Red, 1 flash, Green, 2 flashes long on-time long off-time  
 >ColorA 0x10, Cycles 0x01, ColorB 0x20 , Cycles 0x02, On-Time 0x20, Off-Time 0x30  
@@ -65,17 +63,6 @@ PLEASE CALL ON THIS SERVICE LIKE THIS:
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
 xQueueSendToBack(queHandleINDCmdRequest, &val, 30);
-
-
-
-
-
-
-
-
-This component is called through Task Notification.  The 32bit unsigned Notification parameter becomes the input value.  Encoded into this value is 2 numbers in the range of 1 to 13.  Each of those 2 numbers can be presented in a choice of 4 colors.  There is also the values of off and on time.  Time values range from 1 to 
-
- the primary abstraction is the operation of the entire system.  At present, the project doesn't interact much with the surrounding world, so it's abstraction value is limited.
 
 
 ## Abstractions
