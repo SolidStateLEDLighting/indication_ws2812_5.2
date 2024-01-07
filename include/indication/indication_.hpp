@@ -51,8 +51,8 @@ extern "C"
         rmt_encoder_handle_t led_encoder = NULL;
 
         rmt_transmit_config_t tx_config = {
-            0,   // Specify the times of transmission in a loop, -1 means transmitting in an infinite loop
-            {0}, // eot_level "End Of Transmission" level
+            0,      // Specify the times of transmission in a loop, -1 means transmitting in an infinite loop
+            {0, 1}, // eot_level "End Of Transmission" level, Transaction Queue blocking (1 = return when full)
         };
 
         uint8_t majorVer;

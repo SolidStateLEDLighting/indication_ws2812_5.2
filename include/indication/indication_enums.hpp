@@ -37,7 +37,7 @@ enum LED_BITS
     COLORC_Bit = 0x04,
 };
 
-enum LED_COLOR
+enum LED_TRI_COLOR
 {
     Red = 0x01,
     Green = 0x02,

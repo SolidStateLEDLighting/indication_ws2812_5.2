@@ -1,15 +1,32 @@
 The indication class controls an extrernal RGB LED.  That LED is an addressable WS2812 unit with a single pin located on GPIO 48.
 
-This is a 2 Color Sequencer service.  It is used to deliver 1 or 2 numbers with "blinks" of color.
-Colors may be of a single color or composed of several colors (a combination color).
+**We can set intensity and we can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**
 
-The assumption is that we have a 4 possible LED indicators, ColorA through ColorD.  Any combination of those 4 colors create 1
-combination color.
+Colors may be of a single color or composed of a combination color.
 
-**However, for this project and this LED, we only have 3 colors avaiable in this hardware.**
+With the right hardware, we have a 4 possible LED indicators, ColorA through ColorD.  Any combination of those 4 colors create 1
+combination color.  **However, for this project and this LED, we only have 3 colors avaiable in this hardware.**
 
-We may sequence 2 combination (or single) colors to deliver a two number message through flashing the LEDs.   We may flash any color combination in
-the sequence up to 13 pulses.   We may also choose to flash only one color (or color combination) for up to 13 cycles.
+**Message Types**
+
+1) Task Notification is used to set the color output intensity.
+
+2) A command sent to a Queue is used to trigger the output code.
+
+
+## Setting Output Intensity
+
+Intensity is held by an 8 bit value.  We have the ability to easily send four 8 bit values in a task notification.
+
+bits 7-0 
+
+
+
+
+
+
+
+
 
 The 32 bit Task Notification number we receive encodes an full LED indication sequence
 
