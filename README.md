@@ -6,12 +6,12 @@ The indication class controls an extrernal RGB LED.  That LED is an addressable 
 
 Colors may be of a single color or composed of a combination color.
 
-**Message Types**
+**Received Message Types**
 
-1) Task Notification is used to set the color output intensity.
+1) Task Notification is used to set the color output intensity.  
+2) A command sent to a Queue is used to trigger the output code and speed of the blinking.  
 
-2) A command sent to a Queue is used to trigger the output code.
-
+Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes can follow each other.
 
 ## Setting Output Intensity
 
