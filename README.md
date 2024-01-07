@@ -57,12 +57,12 @@ Assuming we have an RGB color offering:
 >Example3: All Colors OFF completely  
 >All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
->0x70000000 
+>0x7F000000 
 
 
 PLEASE CALL ON THIS SERVICE LIKE THIS:
 
-const int32_t val = 0x22420919;  // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time of 09 and On time of 19 (25 dec)  
+int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
 xQueueSendToBack(queHandleINDCmdRequest, &val, 30);
 
