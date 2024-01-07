@@ -6,37 +6,28 @@ The indication class controls an extrernal RGB LED.  That LED is an addressable 
 
 Colors may be of a single color or composed of a combination color.
 
-**Received Message Types**
+**Received Message Types:**
 
 1) Task Notification is used to set the color output intensity.  
-2) A command sent to a Queue is used to trigger the output code and speed of the blinking.  
+2) A 32 bit command sent to a Queue is used to trigger the output code and speed of the blinking.  
 
-Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes can follow each other.
+Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other.
 
 ## Setting Output Intensity
 
-Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits).  In our hardware, we only make use of the lowest 3 bytes for RGB color intensities.
+Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits) but, our hardware only make use of the lowest 3 bytes for RGB color intensities.
 
 bits  7-0  set Red   intensity
 bits 15-8  set Green intensity
 bits 23-16 set Blue  intensity
 
-
-
-
-
-
-
-
-
-
 ## Setting the Code Number(s)
 
-**Format:**
-byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\>
+**32 Bit Format:**
+MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\> LSB
 
-1st byte format for FirstColor is   MSBit    0x<Colors><Cycles>	LSBit
-\<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC, 0x8 = ColorD (4 bits in use here)
+1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit
+\<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)
 \<Cycles\>   13 possible flashes - 0x01 though 0x0E (1 through 13) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.
 
 Second byte is the Second Color/Cycles.
@@ -59,12 +50,13 @@ Assuming we have an RGB color offering:
 >0x43000115 is our 32 bit value
 
 
-
-
- All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.
+ All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
  0x7        0       0       0      0        0
 
- All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them OFF completely.
+
+
+
+ All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them OFF completely.  
  0x7        F       0       0      0        0
 
 
