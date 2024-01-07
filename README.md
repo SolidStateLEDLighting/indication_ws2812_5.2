@@ -51,7 +51,7 @@ Assuming we have an RGB color offering:
 
 
  All Colors - Cycles - NoColor - Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
- 0x7 -------- 0 ------ 0 ------- 0      0        0
+ 0x7 -------- 0 ------ 0 -------- 0 ---- 0 ------ 0
 
 
 
