@@ -16,19 +16,22 @@ combination color.  **However, for this project and this LED, we only have 3 col
 
 ## Setting Output Intensity
 
-Intensity is held by an 8 bit value.  We have the ability to easily send four 8 bit values in a task notification.
+Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits).  In our hardware, we only make use of the lowest 3 bytes for RGB.
 
-bits 7-0 
-
-
-
-
+bits  7-0  are used to set Red
+bits 15-8  are used to set Green
+bits 23-16 are used to set Blue
 
 
 
 
 
-The 32 bit Task Notification number we receive encodes an full LED indication sequence
+
+
+
+
+
+## Setting the Code Number(s)
 
 **Format:**
 byte 1 \<color1/cycles\>  byte 2 \<color2/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\>
