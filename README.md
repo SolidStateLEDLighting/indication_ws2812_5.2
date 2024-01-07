@@ -52,24 +52,29 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x43000115 is our 32 bit value
 
 >Example3: Turn Red On continously  
->Red Color - Cycles - NoColor - Cycles On-Time  Off-Time  
->0x1 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
+>Red Color - Cycles - NoColor - Cycles - On-Time - Off-Time  
+>0x1 -------- 0 ------- 0 --------- 0 ----- 00 ------ 00  
 >0x10000000 
 
 >Example4: All Colors On continously  
->All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
+>All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x70000000 
 
 >Example5: All Colors OFF completely  
->All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
+>All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7F000000  
 
 >Example6: Return All Colors to normal operation  
->All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
+>All Colors - Cycles - NoColor - Cycles On-Time - Off-Time  
 >0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7E000000  
+
+>Example7: Blue 1 flash, Red 3 flahses  
+>Blue - Cycles - Red - Cycles - On-Time  Off-Time  
+>0x4 -------- 1 ------ 1 --------- 3 ----- 09 ------ 12  
+>0x41130912  
 
 
 PLEASE CALL THE SERVICE LIKE THIS:
