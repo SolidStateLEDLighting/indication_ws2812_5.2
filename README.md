@@ -49,7 +49,7 @@ Assuming we have an RGB color offering:
 >0x40000000 | 0x03000000 | 0x00000000 | 0x00000000 | 0x00000100 | 0x00000015  
 >0x43000115 is our 32 bit value
 
-Example3: All Colors On
+Example3: All Colors On  
 All Colors - Cycles - NoColor - Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
 0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------- 00  
 0x70000000 
