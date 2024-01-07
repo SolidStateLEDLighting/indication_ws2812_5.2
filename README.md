@@ -1,11 +1,10 @@
 The indication class controls an extrernal RGB LED.  That LED is an addressable WS2812 unit with a single pin located on GPIO 48.
 
-**We can set intensity and we can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**
+**We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**
+**We can set the intensity of these colors**
+**We can adjust the on and off time which effectively controls the speed of the blinking**
 
 Colors may be of a single color or composed of a combination color.
-
-With the right hardware, we have a 4 possible LED indicators, ColorA through ColorD.  Any combination of those 4 colors create 1
-combination color.  **However, for this project and this LED, we only have 3 colors avaiable in this hardware.**
 
 **Message Types**
 
@@ -16,11 +15,11 @@ combination color.  **However, for this project and this LED, we only have 3 col
 
 ## Setting Output Intensity
 
-Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits).  In our hardware, we only make use of the lowest 3 bytes for RGB.
+Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits).  In our hardware, we only make use of the lowest 3 bytes for RGB color intensities.
 
-bits  7-0  are used to set Red
-bits 15-8  are used to set Green
-bits 23-16 are used to set Blue
+bits  7-0  set Red   intensity
+bits 15-8  set Green intensity
+bits 23-16 set Blue  intensity
 
 
 
@@ -34,7 +33,7 @@ bits 23-16 are used to set Blue
 ## Setting the Code Number(s)
 
 **Format:**
-byte 1 \<color1/cycles\>  byte 2 \<color2/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\>
+byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\>
 
 1st byte format for FirstColor is   MSBit    0x<Colors><Cycles>	LSBit
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC, 0x8 = ColorD (4 bits in use here)
