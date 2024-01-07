@@ -30,6 +30,10 @@ MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  
 \<Cycles\>   13 possible flashes - 0x01 though 0x0E (1 through 13) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.  
 
+{{% alert title="Note" color="primary" %}}
+If you use the Speical Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Speical Command of 0x0E (AUTO State) to return to normal activity.
+{{% /alert %}}
+
 Second byte is the Second Color/Cycles.  
 Third byte is on_time -- how long the color is on  
 Fourth byte is off_time  -- the time the LEDs are off between cycles.  
@@ -52,10 +56,15 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x70000000 
 
->Example3: All Colors OFF completely  
+>Example4: All Colors OFF completely  
 >All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
->0x7F000000 
+>0x7F000000  
+
+>Example5: Return to normal operation 
+>All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
+>0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
+>0x7E000000  
 
 
 PLEASE CALL ON THIS SERVICE LIKE THIS:
