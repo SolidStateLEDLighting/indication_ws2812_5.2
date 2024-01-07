@@ -1,8 +1,8 @@
 The indication class controls an extrernal RGB LED.  That LED is an addressable WS2812 unit with a single pin located on GPIO 48.
 
-**We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**
-**We can set the intensity of these colors**
-**We can adjust the on and off time which effectively controls the speed of the blinking**
+* **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**  
+* **We can set the intensity of these colors**  
+* **We can adjust the on and off time which effectively controls the speed of the blinking**  
 
 Colors may be of a single color or composed of a combination color.
 
