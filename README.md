@@ -52,8 +52,8 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x43000115 is our 32 bit value
 
 >Example3: Turn Red On continously  
->Red Color  - Cycles - NoColor - Cycles On-Time  Off-Time  
->0x1 -------- 0 ------ 0 --------- 0 ------ 00 ------ 00  
+>Red Color - Cycles - NoColor - Cycles On-Time  Off-Time  
+>0x1 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x10000000 
 
 >Example4: All Colors On continously  
@@ -72,7 +72,7 @@ The values of on_time and off_time are shared between both possible color sequen
 >0x7E000000  
 
 
-PLEASE CALL ON THIS SERVICE LIKE THIS:
+PLEASE CALL THE SERVICE LIKE THIS:
 
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
