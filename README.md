@@ -49,21 +49,20 @@ Assuming we have an RGB color offering:
 >0x40000000 | 0x03000000 | 0x00000000 | 0x00000000 | 0x00000100 | 0x00000015  
 >0x43000115 is our 32 bit value
 
->Example3: All Colors On  
->All Colors - Cycles - NoColor - Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
+>Example3: All Colors On continously  
+>All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x70000000 
 
-
-
- All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them OFF completely.  
- 0x7        F       0       0      0        0
-
+>Example3: All Colors OFF completely  
+>All Colors - Cycles - NoColor - Cycles On-Time  Off-Time  
+>0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
+>0x70000000 
 
 
 PLEASE CALL ON THIS SERVICE LIKE THIS:
 
-const int32_t val = 0x22420919;  // Color 1 is Green, 2 cycles   Color 2 is Blue, 2 cycles.  Off time of 9 and On time of 25 (dec)
+const int32_t val = 0x22420919;  // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time of 09 and On time of 19 (25 dec)  
 
 xQueueSendToBack(queHandleINDCmdRequest, &val, 30);
 
