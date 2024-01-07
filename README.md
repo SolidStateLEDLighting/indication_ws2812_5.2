@@ -50,8 +50,8 @@ Assuming we have an RGB color offering:
 >0x43000115 is our 32 bit value
 
 
- All Colors Cycles  NoColor Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
- 0x7        0       0       0      0        0
+ All Colors - Cycles - NoColor - Cycles On-Time  Off-Time -- Effectively takes all colors and turns them ON continously.  
+ 0x7        - 0      - 0       - 0      0        0
 
 
 
