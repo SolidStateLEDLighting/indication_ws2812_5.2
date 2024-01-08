@@ -1,15 +1,16 @@
 #
 FILE(GLOB_RECURSE SOURCES src/indication/*.cpp)
 #
-# Exposes components to both source and header files.
+# Included components which are exposed in public header files.
 set(INDICATION_REQUIRES
-    nvs
-    driver
-    main
+   main
    )
 #
-# Anything that must be exposed to the sources files, but may remain hidden from the header files.
+# Anything that must be included, but may remain hidden from the public header files.
+# Limiting component exposure can reduce Undefined Reference linking problems in larger applications.
 set(INDICATION_PRIV_REQUIRES
+   nvs
+   driver
    )
 
 idf_component_register(SRCS ${SOURCES}

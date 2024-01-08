@@ -1,4 +1,4 @@
-The indication class controls an extrernal RGB LED.  That LED is an addressable WS2812 unit with a single pin located on GPIO 48.
+The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control connected to GPIO 48.
 
 * **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**  
 * **We can set the intensity of these colors**  
@@ -11,7 +11,7 @@ Colors may be of a single color or composed of a combination color.
 1) Task Notification is used to set the color output intensity.  
 2) A 32 bit command sent to a Queue is used to trigger the output code and speed of the blinking.  
 
-Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other.
+Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other as needed.
 
 ## Setting Output Intensity:  
 
@@ -24,7 +24,7 @@ bits 23-16 set Blue  intensity
 ## Setting the Code Number(s):  
 
 **32 Bit Format:**
-MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<color time on\>  byte 4 \<dark time off\> LSB
+MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<time on\>  byte 4 \<time off\> LSB
 
 1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit  
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  

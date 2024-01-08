@@ -9,11 +9,10 @@
 #include "freertos/semphr.h"
 #include "freertos/projdefs.h"
 
-#include "esp_log.h" // ESP Libraries
-#include "driver/rmt_types.h"
-#include "driver/rmt_tx.h"
+#include "esp_check.h" // ESP Libraries
+#include "esp_log.h"
 
-#include "system_.hpp"
+#include "system_.hpp" // Component Libraries
 #include "nvs/nvs_.hpp"
 
 class System; // Class Declarations
@@ -63,33 +62,37 @@ extern "C"
         LED_STATE bState = LED_STATE::AUTO;
         LED_STATE cState = LED_STATE::AUTO;
 
-        bool aState_nvs_dirty = false;
-        bool bState_nvs_dirty = false;
-        bool cState_nvs_dirty = false;
+        // bool aState_nvs_dirty = false;
+        // bool bState_nvs_dirty = false;
+        // bool cState_nvs_dirty = false;
 
-        bool aState_iot_dirty = false;
-        bool bState_iot_dirty = false;
-        bool cState_iot_dirty = false;
+        // bool aState_iot_dirty = false;
+        // bool bState_iot_dirty = false;
+        // bool cState_iot_dirty = false;
 
         uint8_t aCurrValue = 0; // Curent values are not preserved
         uint8_t bCurrValue = 0;
         uint8_t cCurrValue = 0;
 
-        uint8_t aDefaultValue = 5; // Default values are brightness levels
-        uint8_t bDefaultValue = 10;
-        uint8_t cDefaultValue = 50;
+        uint8_t aSetLevel = 0; // Set values are recorded in nvs
+        uint8_t bSetLevel = 0;
+        uint8_t cSetLevel = 0;
 
-        bool aDefaultValue_nvs_dirty = false;
-        bool bDefaultValue_nvs_dirty = false;
-        bool cDefaultValue_nvs_dirty = false;
+        uint8_t aDefaultLevel = 5;  // Default values are minimum brightness levels.  Without minimums, then if the LED doesn't work,
+        uint8_t bDefaultLevel = 10; // we won't know what the problem is during an "on" time.  CurrValues and SetValues will never
+        uint8_t cDefaultLevel = 50; // be allowed to drop below these minumums.  Default values are set when hardware is built.
+
+        // bool aSetLevel_nvs_dirty = false;
+        // bool bSetLevel_nvs_dirty = false;
+        // bool cSetLevel_nvs_dirty = false;
 
         IND_OP indOP = IND_OP::Run;
-        IND_INIT initINDStep = IND_INIT::Finished;
+        IND_INIT initIndStep = IND_INIT::Finished;
         IND_STATES indStates = IND_STATES::Init;
 
         TaskHandle_t taskHandleRun = nullptr;
 
-        QueueHandle_t queHandleINDCmdRequest = nullptr; // IND <-- ?? (Request Queue is here)
+        QueueHandle_t queHandleIndCmdRequest = nullptr; // IND <-- ?? (Request Queue is here)
 
         IND_NOTIFY indTaskNotifyValue = IND_NOTIFY::NONE;
 
@@ -132,7 +135,7 @@ extern "C"
         static esp_err_t rmt_del_led_strip_encoder(rmt_encoder_t *encoder);
         static esp_err_t rmt_led_strip_encoder_reset(rmt_encoder_t *encoder);
 
-        std::string getStateText(uint8_t);
+        std::string getStateText(LED_STATE);
 
         void routeLogByRef(LOG_TYPE, std::string *);
         void routeLogByValue(LOG_TYPE, std::string);

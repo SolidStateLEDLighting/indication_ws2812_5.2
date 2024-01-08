@@ -22,9 +22,9 @@ typedef struct
 enum class IND_NOTIFY : uint32_t // Task Notification definitions for the Run loop
 {
     NONE = 0,
-    SET_A_COLOR_DEFAULT = 256, // Lower byte has 8 bit value
-    SET_B_COLOR_DEFAULT = 512,
-    SET_C_COLOR_DEFAULT = 1024,
+    SET_A_COLOR_BRIGHTNESS = 256, // Lower byte holeds 8 bit brightness value
+    SET_B_COLOR_BRIGHTNESS = 257,
+    SET_C_COLOR_BRIGHTNESS = 258,
 };
 
 //
@@ -66,6 +66,7 @@ enum class IND_INIT : uint8_t
 {
     Start,
     Init_Queues_Commands,
+    Early_Release,
     Set_Variables_From_Config,
     CreateRMTTxChannel,
     CreateRMTEncoder,

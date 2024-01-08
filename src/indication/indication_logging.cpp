@@ -1,7 +1,6 @@
 #include "indication/indication_.hpp"
-#include "system_.hpp" // Class structure and variables
 
-extern SemaphoreHandle_t semIndRouteLock;
+SemaphoreHandle_t semIndRouteLock = NULL;
 
 /* Logging */
 void Indication::routeLogByRef(LOG_TYPE _type, std::string *_msg)

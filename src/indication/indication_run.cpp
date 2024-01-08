@@ -1,7 +1,4 @@
 #include "indication/indication_.hpp"
-#include "system_.hpp"
-
-#include "esp_check.h"
 
 extern SemaphoreHandle_t semIndEntry;
 
@@ -136,33 +133,28 @@ void Indication::run(void)
 
                 if (indTaskNotifyValue > IND_NOTIFY::NONE)
                 {
-                    // ESP_LOGW(TAG, "Task notification = 0x%08X", (int)indTaskNotifyValue);
                     uint8_t newValue = (int)indTaskNotifyValue & 0x000000FF;
-                    // ESP_LOGW(TAG, "Task notification = %d  newValue is %d", ((int)indTaskNotifyValue & 0xFFFFFF00), newValue);
+
+                    if (show & _showRun)
+                    {
+                        // ESP_LOGW(TAG, "Task notification = 0x%08X", (int)indTaskNotifyValue);
+                        ESP_LOGW(TAG, "Received Task notification = 0x%08X  newValue is %d", ((int)indTaskNotifyValue & 0xFFFFFF00), newValue);
+                    }
 
                     if (newValue > 0)
                     {
-                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_DEFAULT) // All notifications here set
-                        {                                                                   // default color intensities.
-                            aDefaultValue = newValue;
-                            aDefaultValue_nvs_dirty = true;
-                        }
-                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_DEFAULT)
-                        {
-                            bDefaultValue = newValue;
-                            bDefaultValue_nvs_dirty = true;
-                        }
-                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_DEFAULT)
-                        {
-                            cDefaultValue = newValue;
-                            cDefaultValue_nvs_dirty = true;
-                        }
+                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS) // All notifications here become SetLevel color intensities.
+                            aSetLevel = newValue;
+                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
+                            bSetLevel = newValue;
+                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
+                            cSetLevel = newValue;
                         saveToNVSDelayCount = 5;
                     }
                 }
             }
 
-            if (xQueueReceive(queHandleINDCmdRequest, (void *)&value, pdMS_TO_TICKS(195))) // We can afford to wait here for requests
+            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(195))) // We can wait here most of the time for requests
                 startIndication(value);
 
             if (saveToNVSDelayCount > 0)
@@ -180,20 +172,14 @@ void Indication::run(void)
 
         case IND_OP::Init:
         {
-            switch (initINDStep)
+            switch (initIndStep)
             {
             case IND_INIT::Start:
             {
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Start");
 
-                xSemaphoreGive(semIndEntry); // Relesing early because no one else uses indication during startup
-
-                if (ENABLE_INDICATION)
-                    initINDStep = IND_INIT::Init_Queues_Commands;
-                else
-                    initINDStep = IND_INIT::Finished;
-
+                initIndStep = IND_INIT::Init_Queues_Commands;
                 break;
             }
 
@@ -202,9 +188,21 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Init_Queues_Commands - Step " + std::to_string((int)IND_INIT::Init_Queues_Commands));
 
-                queHandleINDCmdRequest = xQueueCreate(3, sizeof(uint32_t)); // We can receive up to 3 indication requests and they will play out in order.
+                queHandleIndCmdRequest = xQueueCreate(3, sizeof(uint32_t)); // We can receive up to 3 indication requests and they will play out in order.
+                initIndStep = IND_INIT::Early_Release;
+                break;
+            }
 
-                initINDStep = IND_INIT::Set_Variables_From_Config;
+            case IND_INIT::Early_Release:
+            {
+                if (show & _showInit)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Early_Release - Step " + std::to_string((int)IND_INIT::Early_Release));
+                //
+                // In the event that no one else is using the LED for any kind of indication during initialization, the object can release it's locking
+                // semaphore early.
+                //
+                xSemaphoreGive(semIndEntry); // Releasing early because no one else uses indication during startup
+                initIndStep = IND_INIT::Set_Variables_From_Config;
                 break;
             }
 
@@ -231,9 +229,7 @@ void Indication::run(void)
                 else if (cState == LED_STATE::OFF)
                     setAndClearColors(0, COLORC_Bit);
 
-                initINDStep = IND_INIT::CreateRMTTxChannel;
-                break;
-
+                initIndStep = IND_INIT::CreateRMTTxChannel;
                 break;
             }
 
@@ -257,12 +253,12 @@ void Indication::run(void)
                 };
 
                 ESP_GOTO_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), CreateRMTTxChannel_err, TAG, "rmt_new_tx_channel() failed");
-                initINDStep = IND_INIT::CreateRMTEncoder;
+                initIndStep = IND_INIT::CreateRMTEncoder;
                 break;
 
             CreateRMTTxChannel_err:
                 ESP_LOGE(TAG, "error: %s", esp_err_to_name(ret));
-                initINDStep = IND_INIT::Finished;
+                initIndStep = IND_INIT::Finished;
                 break;
             }
 
@@ -280,11 +276,11 @@ void Indication::run(void)
                 if unlikely (ret != ESP_OK)
                 {
                     ESP_LOGE(TAG, "%s::rmt_new_led_strip_encoder() failed.  err = %d - %s", __func__, ret, esp_err_to_name(ret));
-                    initINDStep = IND_INIT::Finished;
+                    initIndStep = IND_INIT::Finished;
                     break;
                 }
 
-                initINDStep = IND_INIT::EnableRMTChannel;
+                initIndStep = IND_INIT::EnableRMTChannel;
                 break;
             }
 
@@ -298,7 +294,7 @@ void Indication::run(void)
                 if unlikely (ret != ESP_OK)
                 {
                     ESP_LOGE(TAG, "%s::rmt_enable() failed.  err = %d - %s", __func__, ret, esp_err_to_name(ret));
-                    initINDStep = IND_INIT::Finished;
+                    initIndStep = IND_INIT::Finished;
                     break;
                 }
 
@@ -308,12 +304,12 @@ void Indication::run(void)
                 ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), EnableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
 
                 cycles = majorVer;
-                initINDStep = IND_INIT::ColorA_On;
+                initIndStep = IND_INIT::ColorA_On;
                 break;
 
             EnableRMTChannel_err:
                 ESP_LOGE(TAG, "Error is %s", esp_err_to_name(ret));
-                initINDStep = IND_INIT::Finished;
+                initIndStep = IND_INIT::Finished;
                 break;
             }
 
@@ -325,7 +321,7 @@ void Indication::run(void)
                 setAndClearColors((uint8_t)COLORA_Bit, 0);
 
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initINDStep = IND_INIT::ColorA_Off;
+                initIndStep = IND_INIT::ColorA_Off;
                 break;
             }
 
@@ -343,12 +339,12 @@ void Indication::run(void)
 
                 if (cycles > 0)
                 {
-                    initINDStep = IND_INIT::ColorA_On;
+                    initIndStep = IND_INIT::ColorA_On;
                 }
                 else
                 {
                     cycles = minorVer;
-                    initINDStep = IND_INIT::ColorB_On;
+                    initIndStep = IND_INIT::ColorB_On;
                     vTaskDelay(pdMS_TO_TICKS(250));
                 }
                 break;
@@ -362,7 +358,7 @@ void Indication::run(void)
                 setAndClearColors((uint8_t)COLORB_Bit, 0);
 
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initINDStep = IND_INIT::ColorB_Off;
+                initIndStep = IND_INIT::ColorB_Off;
                 break;
             }
 
@@ -380,12 +376,12 @@ void Indication::run(void)
 
                 if (cycles > 0)
                 {
-                    initINDStep = IND_INIT::ColorB_On;
+                    initIndStep = IND_INIT::ColorB_On;
                 }
                 else
                 {
                     cycles = revNumber;
-                    initINDStep = IND_INIT::ColorC_On;
+                    initIndStep = IND_INIT::ColorC_On;
                     vTaskDelay(pdMS_TO_TICKS(250));
                 }
                 break;
@@ -399,7 +395,7 @@ void Indication::run(void)
                 setAndClearColors((uint8_t)COLORC_Bit, 0);
 
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initINDStep = IND_INIT::ColorC_Off;
+                initIndStep = IND_INIT::ColorC_Off;
                 break;
             }
 
@@ -417,11 +413,11 @@ void Indication::run(void)
 
                 if (cycles > 0)
                 {
-                    initINDStep = IND_INIT::ColorC_On;
+                    initIndStep = IND_INIT::ColorC_On;
                 }
                 else
                 {
-                    initINDStep = IND_INIT::Finished;
+                    initIndStep = IND_INIT::Finished;
                     vTaskDelay(pdMS_TO_TICKS(250));
                 }
                 break;
@@ -433,7 +429,7 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Finished");
 
                 indOP = IND_OP::Run;
-                // xSemaphoreGive(semIndEntry); // Let anyone waiting know that our Initialization is complete
+                // xSemaphoreGive(semIndEntry); // Yield now if not done earlier inside Early_Release
                 break;
             }
             }
@@ -442,4 +438,196 @@ void Indication::run(void)
         }
         taskYIELD();
     }
+}
+
+esp_err_t Indication::startIndication(uint32_t value)
+{
+    esp_err_t ret = ESP_OK;
+    //  std::cout << "IO Value: " << (uint32_t *)value << std::endl;
+    first_color_target = (0xF0000000 & value) >> 28; // First Color(s) -- We may see any of the color bits set
+    first_color_cycles = (0x0F000000 & value) >> 24; // First Color Cycles
+
+    second_color_target = (0x00F00000 & value) >> 20; // Second Color(s)
+    second_color_cycles = (0x000F0000 & value) >> 16; // Second Color Cycles
+
+    on_time = (0x0000FF00 & value) >> 8; // Time out
+    off_time = (0x000000FF & value);     // Dark Time
+
+    first_on_time_counter = on_time;
+    second_on_time_counter = on_time;
+
+    // ESP_LOGW(TAG, "First Color 0x%0X Cycles 0x%0X", first_color_target, first_color_cycles);
+    // ESP_LOGW(TAG, "Second Color 0x%0X Cycles 0x%0X", second_color_target, second_color_cycles);
+    // ESP_LOGW(TAG, "Color Time 0x%02X", on_time);
+    // ESP_LOGW(TAG, "Dark Time 0x%02X", off_time);
+
+    //
+    // Manually turning ON and OFF or AUTO -- the led LEDs happens always in the First Color byte
+    //
+    if (first_color_cycles == 0x00) // Turn Colors On and exit routine
+    {
+        ESP_LOGW(TAG, "first_color_cycles == 0x00");
+
+        if (first_color_target & COLORA_Bit)
+            aState = LED_STATE::ON;
+
+        if (first_color_target & COLORB_Bit)
+            bState = LED_STATE::ON;
+
+        if (first_color_target & COLORC_Bit)
+            cState = LED_STATE::ON;
+
+        clearLEDTargets = 0;
+        setLEDTargets = (uint8_t)COLORA_Bit | (uint8_t)COLORB_Bit | (uint8_t)COLORC_Bit;
+        setAndClearColors(setLEDTargets, clearLEDTargets);
+    }
+    else if (first_color_cycles == 0x0F) // Turn Colors Off and exit routine
+    {
+        ESP_LOGW(TAG, "first_color_cycles == 0x0F");
+
+        if (first_color_target & COLORA_Bit)
+            aState = LED_STATE::OFF;
+
+        if (first_color_target & COLORB_Bit)
+            bState = LED_STATE::OFF;
+
+        if (first_color_target & COLORC_Bit)
+            cState = LED_STATE::OFF;
+
+        setLEDTargets = 0;
+        clearLEDTargets = (uint8_t)COLORA_Bit | (uint8_t)COLORB_Bit | (uint8_t)COLORC_Bit;
+        setAndClearColors(setLEDTargets, clearLEDTargets);
+    }
+    else if (first_color_cycles == 0x0E) // Turn Colors to AUTO State and exit routine
+    {
+        ESP_LOGW(TAG, "first_color_cycles == 0x0E");
+
+        if (first_color_target & COLORA_Bit)
+            aState = LED_STATE::AUTO;
+
+        if (first_color_target & COLORB_Bit)
+            bState = LED_STATE::AUTO;
+
+        if (first_color_target & COLORC_Bit)
+            cState = LED_STATE::AUTO;
+        setAndClearColors(first_color_target, 0);
+    }
+    else
+    {
+        setAndClearColors(first_color_target, 0); // Process normal color display
+        first_color_cycles--;
+        indStates = IND_STATES::Show_FirstColor;
+        IsIndicating = true;
+    }
+    return ret;
+}
+
+void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)
+{
+    esp_err_t ret = ESP_OK;
+    uint8_t led_strip_pixels[3];
+
+    led_strip_pixels[0] = bCurrValue; // Green
+    led_strip_pixels[1] = aCurrValue; // Red
+    led_strip_pixels[2] = cCurrValue; // Blue
+
+    //
+    // ESP_LOGI(TAG, "SetAndClearColors 0x%02X 0x%02X", SetColors, ClearColors); // Debug info
+    // ESP_LOGI(TAG, "Colors Curr/Default  %d/%d   %d/%d   %d/%d", aCurrValue, aDefaultLevel, bCurrValue, bDefaultLevel, cCurrValue, cDefaultValue);
+    //
+    if (ClearColors & COLORA_Bit) // Seeing the bit to Clear this color
+    {
+        if (aState == LED_STATE::ON)
+            aCurrValue = aSetLevel; // Don't turn off this value because our state is ON
+        else
+            aCurrValue = 0; // Otherwise, turn it off.
+
+        led_strip_pixels[1] = aCurrValue; // Red
+        ESP_LOGW(TAG, "Red    State = %s / Value = %d", getStateText(aState).c_str(), aCurrValue);
+    }
+
+    if (ClearColors & COLORB_Bit)
+    {
+        if (bState == LED_STATE::ON)
+            bCurrValue = bSetLevel;
+        else
+            bCurrValue = 0;
+
+        led_strip_pixels[0] = bCurrValue; // Green
+        ESP_LOGW(TAG, "Green  State = %s / Value = %d", getStateText(bState).c_str(), bCurrValue);
+    }
+
+    if (ClearColors & COLORC_Bit)
+    {
+        if (cState == LED_STATE::ON)
+            cCurrValue = cSetLevel;
+        else
+            cCurrValue = 0;
+
+        led_strip_pixels[2] = cCurrValue; // Blue
+        ESP_LOGW(TAG, "Blue   State = %s / Value = %d", getStateText(cState).c_str(), cCurrValue);
+    }
+
+    if (SetColors & COLORA_Bit) // Setting the bit to Set this color
+    {
+        if (aState == LED_STATE::OFF) // Set the color if the state is set above OFF
+            aCurrValue = 0;           // Don't allow any value to be displayed on the LED
+        else
+            aCurrValue = aSetLevel; // State is either AUTO or ON.
+
+        led_strip_pixels[1] = aCurrValue; // Red
+        ESP_LOGW(TAG, "Red    State = %s / Value = %d", getStateText(aState).c_str(), aCurrValue);
+    }
+
+    if (SetColors & COLORB_Bit)
+    {
+        if (bState == LED_STATE::OFF)
+            bCurrValue = 0;
+        else
+            bCurrValue = bSetLevel;
+
+        led_strip_pixels[0] = bCurrValue; // Green
+        ESP_LOGW(TAG, "Green  State = %s / Value = %d", getStateText(bState).c_str(), bCurrValue);
+    }
+
+    if (SetColors & COLORC_Bit)
+    {
+        if (cState == LED_STATE::OFF)
+            cCurrValue = 0;
+        else
+            cCurrValue = cSetLevel;
+
+        led_strip_pixels[2] = cCurrValue; // Blue
+        ESP_LOGW(TAG, "Blue   State = %s / Value = %d", getStateText(cState).c_str(), cCurrValue);
+    }
+
+    /* ESP_LOGW(TAG, "---------------------------------------------------");
+    ESP_LOGW(TAG, "Red    State = %s / Value = %d", getStateText(aState).c_str(), aCurrValue);
+    ESP_LOGW(TAG, "Green  State = %s / Value = %d", getStateText(bState).c_str(), bCurrValue);
+    ESP_LOGW(TAG, "Blue   State = %s / Value = %d", getStateText(cState).c_str(), cCurrValue);
+    ESP_LOGW(TAG, "---------------------------------------------------"); */
+
+    ret = rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config);
+    ret = rmt_tx_wait_all_done(led_chan, portMAX_DELAY);
+
+    if (ret != ESP_OK)
+        ESP_LOGE(TAG, "::%s %s", __func__, esp_err_to_name(ret));
+}
+
+void Indication::resetIndication()
+{
+    first_color_target = 0;
+    first_color_cycles = 0;
+
+    second_color_target = 0;
+    second_color_cycles = 0;
+
+    off_time = 0;
+    off_time_counter = 0;
+
+    on_time = 0;
+    on_time_counter = 0;
+
+    indStates = IND_STATES::Init;
+    IsIndicating = false;
 }

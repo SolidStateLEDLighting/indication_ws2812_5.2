@@ -1,7 +1,4 @@
 #include "indication/indication_.hpp"
-#include "system_.hpp" // Class structure and variables
-
-#include "esp_check.h"
 
 /* External Variables */
 extern SemaphoreHandle_t semNVSEntry;
@@ -13,11 +10,15 @@ bool Indication::restoreVariablesFromNVS(void)
         routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "()");
 
     uint8_t temp = 0;
+    bool successFlag = true;
 
     if (xSemaphoreTake(semNVSEntry, portMAX_DELAY) == pdTRUE)
     {
         if (nvs == nullptr)
             nvs = NVS::getInstance(); // First, get the nvs object handle if didn't already.
+
+        if (show & _showNVS)
+            routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
 
         if unlikely (nvs->openNVSStorage("indication", true) == false)
         {
@@ -26,8 +27,6 @@ bool Indication::restoreVariablesFromNVS(void)
             return false;
         }
     }
-
-    bool successFlag = true;
 
     if (successFlag) // Restore runStackSizeK
     {
@@ -51,148 +50,132 @@ bool Indication::restoreVariablesFromNVS(void)
         }
     }
 
-    /* Restore Color States */
-    std::string key = "aState";
-    uint8_t int8Val = 0;
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
+    if (successFlag) // Restore aState
     {
-        if (int8Val == 0) // If the value has never been saved, set it to AUTO and mark it dirty
+        if (nvs->getU8IntegerFromNVS("aState", (uint8_t *)&aState))
         {
-            int8Val = (uint8_t)aState;
-            aState_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aState is " + getStateText(aState));
         }
-
-        if (show & _showNVS)
-            ESP_LOGI(TAG, "aState is %s", getStateText((int)aState).c_str());
-    }
-    else
-    {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
-        nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
-    }
-
-    key = "bState";
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
-    {
-        if (int8Val == 0)
-        {
-            int8Val = (uint8_t)bState;
-            bState_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
-        }
-
-        if (show & _showNVS)
-            ESP_LOGI(TAG, "bState is %s", getStateText((int)bState).c_str());
-    }
-    else
-    {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
-        nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
-    }
-
-    key = "cState";
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
-    {
-        if (int8Val == 0)
-        {
-            int8Val = (uint8_t)cState;
-            cState_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
-        }
-
-        if (show & _showNVS)
-            ESP_LOGI(TAG, "cState is %s", getStateText((int)cState).c_str());
-    }
-    else
-    {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
-        nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
-    }
-
-    /* Restore Color Values */
-    key = "aDefValue"; // Color A Default Value
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
-    {
-        if (int8Val > 0)             // Do not allow the Color Value to be set lower than 1
-            aDefaultValue = int8Val; // The key idea is that we are restoring a saved default value.
-        else                         // Value is zero which is unacceptable.
-        {
-            aDefaultValue = 1;
-            aDefaultValue_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
-        }
-
-        if (show & _showNVS) // If we don't have something stored, then we still have the program's default value.
-            ESP_LOGI(TAG, "Color A Value Default %d", aDefaultValue);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
-        nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
-    }
-
-    key = "bDefValue";
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
-    {
-        if (int8Val > 0)
-            bDefaultValue = int8Val;
         else
         {
-            bDefaultValue = 1;
-            bDefaultValue_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore aState");
         }
-
-        if (show & _showNVS)
-            ESP_LOGI(TAG, "Color B Value Default %d", bDefaultValue);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
-        nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
     }
 
-    key = "cDefValue";
-
-    if unlikely (nvs->getU8IntegerFromNVS(key.c_str(), &int8Val))
+    if (successFlag) // Restore bState
     {
-        if (int8Val > 0)
-            cDefaultValue = int8Val;
+        if (nvs->getU8IntegerFromNVS("bState", (uint8_t *)&bState))
+        {
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bState is " + getStateText(bState));
+        }
         else
         {
-            cDefaultValue = 1;
-            cDefaultValue_nvs_dirty = true;
-            saveToNVSDelayCount = 10;
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore bState");
         }
+    }
 
+    if (successFlag) // Restore cState
+    {
+        if (nvs->getU8IntegerFromNVS("cState", (uint8_t *)&cState))
+        {
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cState is " + getStateText(cState));
+        }
+        else
+        {
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore cState");
+        }
+    }
+
+    if (successFlag) // Restore aSetLevel
+    {
+        if (aSetLevel < aDefaultLevel) // Bring SetLevel up to DefaultLevel if needed
+            aSetLevel = aDefaultLevel;
+
+        if (nvs->getU8IntegerFromNVS("aSetLevel", (uint8_t *)&aSetLevel)) // Attempt to restore, or possibly set the inital default value.
+        {
+            if (aSetLevel < aDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
+            {
+                aSetLevel = aDefaultLevel;
+                saveToNVSDelayCount = 10;
+            }
+
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aSetLevel is " + std::to_string(aSetLevel));
+        }
+        else
+        {
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore aSetLevel");
+        }
+    }
+
+    if (successFlag) // Restore bSetLevel
+    {
+        if (bSetLevel < bDefaultLevel) // Bring SetLevel up to DefaultLevel if needed
+            bSetLevel = bDefaultLevel;
+
+        if (nvs->getU8IntegerFromNVS("bSetLevel", (uint8_t *)&bSetLevel)) // Attempt to restore, or possibly set the inital default value.
+        {
+            if (bSetLevel < bDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
+            {
+                bSetLevel = bDefaultLevel;
+                saveToNVSDelayCount = 10;
+            }
+
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bSetLevel is " + std::to_string(bSetLevel));
+        }
+        else
+        {
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore bSetLevel");
+        }
+    }
+
+    if (successFlag) // Restore cSetLevel
+    {
+        if (cSetLevel < cDefaultLevel) // Bring SetLevel up to DefaultLevel if needed
+            cSetLevel = cDefaultLevel;
+
+        if (nvs->getU8IntegerFromNVS("cSetLevel", (uint8_t *)&cSetLevel)) // Attempt to restore, or possibly set the inital default value.
+        {
+            if (cSetLevel < cDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
+            {
+                cSetLevel = cDefaultLevel;
+                saveToNVSDelayCount = 10;
+            }
+
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cSetLevel is " + std::to_string(cSetLevel));
+        }
+        else
+        {
+            successFlag = false;
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unable to restore cSetLevel");
+        }
+    }
+
+    if (show & _showNVS)
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): closeNVStorage 'indication'");
+
+    if (successFlag)
+    {
         if (show & _showNVS)
-            ESP_LOGI(TAG, "Color C Value Default %d", cDefaultValue);
+            routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): Success");
+        nvs->closeNVStorage(true); // Commit changes
     }
     else
     {
-        ESP_LOGE(TAG, "getU8IntegerFromNVS failed on key %s", key.c_str());
+        routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Failed");
         nvs->closeNVStorage(false); // No changes
-        xSemaphoreGive(semNVSEntry);
-        return false;
     }
 
-    nvs->closeNVStorage(false); // No commit to any changes
     xSemaphoreGive(semNVSEntry);
     return true;
 }
@@ -200,19 +183,22 @@ bool Indication::restoreVariablesFromNVS(void)
 bool Indication::saveVariablesToNVS(void)
 {
     if (show & _showNVS)
-        ESP_LOGW(TAG, "saveVariablesToNVS");
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "()");
+
+    bool successFlag = true;
 
     if (xSemaphoreTake(semNVSEntry, portMAX_DELAY) == pdTRUE)
     {
+        if (show & _showNVS)
+            routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
+
         if unlikely (nvs->openNVSStorage("indication", true) == false)
         {
-            ESP_LOGE(TAG, "Error, Unable to OpenNVStorage inside saveVariablesToNVS");
+            routeLogByValue(LOG_TYPE::ERROR, "Error, Unable to OpenNVStorage inside saveVariablesToNVS");
             xSemaphoreGive(semNVSEntry);
             return false;
         }
     }
-
-    bool successFlag = true;
 
     if (successFlag) // Save runStackSizeK
     {
@@ -228,122 +214,92 @@ bool Indication::saveVariablesToNVS(void)
         }
     }
 
-    //
-    // Save Color States
-    //
     if (successFlag) // Save aState
     {
-        if (aState_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("aState", (int)aState))
         {
-            if (nvs->saveU8IntegerToNVS("aState", (int)aState))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aState = " + std::to_string((int)aState));
-                aState_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save aState");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aState = " + std::to_string((int)aState));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save aState");
+            successFlag = false;
         }
     }
 
     if (successFlag) // Save bState
     {
-        if (bState_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("bState", (int)bState))
         {
-            if (nvs->saveU8IntegerToNVS("bState", (int)bState))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bState = " + std::to_string((int)bState));
-                bState_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save bState");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bState = " + std::to_string((int)bState));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save bState");
+            successFlag = false;
         }
     }
 
     if (successFlag) // Save cState
     {
-        if (cState_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("cState", (int)cState))
         {
-            if (nvs->saveU8IntegerToNVS("cState", (int)cState))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cState = " + std::to_string((int)cState));
-                cState_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save cState");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cState = " + std::to_string((int)cState));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save cState");
+            successFlag = false;
         }
     }
 
-    //
-    // Save Default Color Values
-    //
-    if (successFlag) // Save aDefaultValue
+    if (successFlag) // Save aSetLevel
     {
-        if (aDefaultValue_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("aSetLevel", (int)aSetLevel))
         {
-            if (nvs->saveU8IntegerToNVS("aDefaultValue", (int)aDefaultValue))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aDefaultValue = " + std::to_string((int)aDefaultValue));
-                aDefaultValue_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save aDefaultValue");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aSetLevel = " + std::to_string((int)aSetLevel));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save aSetLevel");
+            successFlag = false;
         }
     }
 
-    if (successFlag) // Save bDefaultValue
+    if (successFlag) // Save bSetLevel
     {
-        if (bDefaultValue_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("bSetLevel", (int)bSetLevel))
         {
-            if (nvs->saveU8IntegerToNVS("bDefaultValue", (int)bDefaultValue))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bDefaultValue = " + std::to_string((int)bDefaultValue));
-                bDefaultValue_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save bDefaultValue");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bSetLevel = " + std::to_string((int)bSetLevel));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save bSetLevel");
+            successFlag = false;
         }
     }
 
-    if (successFlag) // Save cDefaultValue
+    if (successFlag) // Save cSetLevel
     {
-        if (cDefaultValue_nvs_dirty)
+        if (nvs->saveU8IntegerToNVS("cSetLevel", (int)cSetLevel))
         {
-            if (nvs->saveU8IntegerToNVS("cDefaultValue", (int)cDefaultValue))
-            {
-                if (show & _showNVS)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cDefaultValue = " + std::to_string((int)cDefaultValue));
-                cDefaultValue_nvs_dirty = false;
-            }
-            else
-            {
-                routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save cDefaultValue");
-                successFlag = false;
-            }
+            if (show & _showNVS)
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cSetLevel = " + std::to_string((int)cSetLevel));
+        }
+        else
+        {
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Unable to save cSetLevel");
+            successFlag = false;
         }
     }
 
     if (show & _showNVS)
-        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): indication end");
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): closeNVStorage 'indication'");
 
     if (successFlag)
     {
