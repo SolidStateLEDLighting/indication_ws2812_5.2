@@ -1,5 +1,7 @@
 #include "indication/indication_.hpp"
 
+#include "nvs/nvs_.hpp" // Our components
+
 /* External Variables */
 extern SemaphoreHandle_t semNVSEntry;
 

@@ -7,6 +7,7 @@ extern SemaphoreHandle_t semSysEntry;
 extern SemaphoreHandle_t semNVSEntry;
 extern SemaphoreHandle_t semIndRouteLock;
 
+/* Construction/Destruction */
 Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myRevNumber)
 {
     majorVer = myMajorVer; // We pass in the software version of the project so out LEDs
@@ -46,11 +47,12 @@ Indication::~Indication()
         vTaskDelete(NULL);
 }
 
+/* Construction Functions */
 void Indication::setShowFlags()
 {
     show = 0;
-    // show |= _showInit;
-    show |= _showNVS;
+    show |= _showInit;
+    // show |= _showNVS;
     show |= _showRun;
 }
 
@@ -59,7 +61,7 @@ void Indication::setLogLevels()
     if (show > 0)                             // Normally, we are interested in the variables inside our object.
         esp_log_level_set(TAG, ESP_LOG_INFO); // If we have any flags set, we need to be sure to turn on the logging so we can see them.
     else
-        esp_log_level_set(TAG, ESP_LOG_ERROR); // Likewise, we turn off logging if we are not looking for anything.
+        esp_log_level_set(TAG, ESP_LOG_ERROR); // Alturnatively, we turn down logging for Errors only, if we are not looking for anything else.
 
     // If we notice any supporting libraries printing to the serial output, we can alter their logging levels here in development.
 }

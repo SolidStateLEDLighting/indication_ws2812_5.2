@@ -23,8 +23,8 @@ enum class IND_NOTIFY : uint32_t // Task Notification definitions for the Run lo
 {
     NONE = 0,
     SET_A_COLOR_BRIGHTNESS = 256, // Lower byte holeds 8 bit brightness value
-    SET_B_COLOR_BRIGHTNESS = 257,
-    SET_C_COLOR_BRIGHTNESS = 258,
+    SET_B_COLOR_BRIGHTNESS = 512,
+    SET_C_COLOR_BRIGHTNESS = 1024,
 };
 
 //

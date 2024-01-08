@@ -136,19 +136,19 @@ void Indication::run(void)
                     uint8_t newValue = (int)indTaskNotifyValue & 0x000000FF;
 
                     if (show & _showRun)
-                    {
-                        // ESP_LOGW(TAG, "Task notification = 0x%08X", (int)indTaskNotifyValue);
-                        ESP_LOGW(TAG, "Received Task notification = 0x%08X  newValue is %d", ((int)indTaskNotifyValue & 0xFFFFFF00), newValue);
-                    }
+                        ESP_LOGW(TAG, "Task notification Colors 0x%02X  newValue is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), newValue);
 
-                    if (newValue > 0)
+                    if (newValue > 0) // All notifications here be applied to all colors may be set at the same time.
                     {
-                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS) // All notifications here become SetLevel color intensities.
+                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS)
                             aSetLevel = newValue;
-                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
+
+                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
                             bSetLevel = newValue;
-                        else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
+
+                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
                             cSetLevel = newValue;
+
                         saveToNVSDelayCount = 5;
                     }
                 }
@@ -456,17 +456,17 @@ esp_err_t Indication::startIndication(uint32_t value)
     first_on_time_counter = on_time;
     second_on_time_counter = on_time;
 
-    // ESP_LOGW(TAG, "First Color 0x%0X Cycles 0x%0X", first_color_target, first_color_cycles);
-    // ESP_LOGW(TAG, "Second Color 0x%0X Cycles 0x%0X", second_color_target, second_color_cycles);
-    // ESP_LOGW(TAG, "Color Time 0x%02X", on_time);
-    // ESP_LOGW(TAG, "Dark Time 0x%02X", off_time);
+    ESP_LOGW(TAG, "First Color 0x%X Cycles 0x%X", first_color_target, first_color_cycles);
+    ESP_LOGW(TAG, "Second Color 0x%X Cycles 0x%0X", second_color_target, second_color_cycles);
+    ESP_LOGW(TAG, "Color Time 0x%02X", on_time);
+    ESP_LOGW(TAG, "Dark Time 0x%02X", off_time);
 
     //
     // Manually turning ON and OFF or AUTO -- the led LEDs happens always in the First Color byte
     //
-    if (first_color_cycles == 0x00) // Turn Colors On and exit routine
+    if (first_color_cycles == 0x0) // Cycles value is 0 -> Turn Colors Off and exit routine
     {
-        ESP_LOGW(TAG, "first_color_cycles == 0x00");
+        ESP_LOGW(TAG, "first_color_cycles = 0x0");
 
         if (first_color_target & COLORA_Bit)
             aState = LED_STATE::ON;
@@ -477,28 +477,11 @@ esp_err_t Indication::startIndication(uint32_t value)
         if (first_color_target & COLORC_Bit)
             cState = LED_STATE::ON;
 
-        clearLEDTargets = 0;
-        setLEDTargets = (uint8_t)COLORA_Bit | (uint8_t)COLORB_Bit | (uint8_t)COLORC_Bit;
-        setAndClearColors(setLEDTargets, clearLEDTargets);
-    }
-    else if (first_color_cycles == 0x0F) // Turn Colors Off and exit routine
-    {
-        ESP_LOGW(TAG, "first_color_cycles == 0x0F");
-
-        if (first_color_target & COLORA_Bit)
-            aState = LED_STATE::OFF;
-
-        if (first_color_target & COLORB_Bit)
-            bState = LED_STATE::OFF;
-
-        if (first_color_target & COLORC_Bit)
-            cState = LED_STATE::OFF;
-
         setLEDTargets = 0;
-        clearLEDTargets = (uint8_t)COLORA_Bit | (uint8_t)COLORB_Bit | (uint8_t)COLORC_Bit;
+        clearLEDTargets = (uint8_t)(first_color_target & COLORA_Bit) | (uint8_t)(first_color_target & COLORB_Bit) | (uint8_t)(first_color_target & COLORC_Bit);
         setAndClearColors(setLEDTargets, clearLEDTargets);
     }
-    else if (first_color_cycles == 0x0E) // Turn Colors to AUTO State and exit routine
+    else if (first_color_cycles == 0xE) // Cycles value is E -> Turn Colors to AUTO State and exit routine
     {
         ESP_LOGW(TAG, "first_color_cycles == 0x0E");
 
@@ -511,6 +494,23 @@ esp_err_t Indication::startIndication(uint32_t value)
         if (first_color_target & COLORC_Bit)
             cState = LED_STATE::AUTO;
         setAndClearColors(first_color_target, 0);
+    }
+    else if (first_color_cycles == 0xF) // Cycles value is F -> Turn Colors On and exit routine
+    {
+        ESP_LOGW(TAG, "first_color_cycles = 0xF");
+
+        if (first_color_target & COLORA_Bit)
+            aState = LED_STATE::OFF;
+
+        if (first_color_target & COLORB_Bit)
+            bState = LED_STATE::OFF;
+
+        if (first_color_target & COLORC_Bit)
+            cState = LED_STATE::OFF;
+
+        clearLEDTargets = 0;
+        setLEDTargets = (uint8_t)(first_color_target & COLORA_Bit) | (uint8_t)(first_color_target & COLORB_Bit) | (uint8_t)(first_color_target & COLORC_Bit);
+        setAndClearColors(setLEDTargets, clearLEDTargets);
     }
     else
     {

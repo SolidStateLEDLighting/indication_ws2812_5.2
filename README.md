@@ -28,7 +28,7 @@ MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<time on\>  byte
 
 1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit  
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  
-\<Cycles\>   13 possible flashes - 0x01 though 0x0E (1 through 13) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.  
+\<Cycles\>   9 possible flashes - 0x01 though 0x0E (1 through 9) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.  
 
 Second byte is the Second Color/Cycles.  
 Third byte is on_time -- how long the color is on  
@@ -53,17 +53,17 @@ The values of on_time and off_time are shared between both possible color sequen
 
 >Example3: Turn Red On continously  
 >Red Color - Cycles - NoColor - Cycles - On-Time - Off-Time  
->0x1 -------- 0 ------- 0 --------- 0 ----- 00 ------ 00  
+>0x1 -------- F ------- 0 --------- 0 ----- 00 ------ 00  
 >0x10000000 
 
 >Example4: All Colors On continously  
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
->0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
+>0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
 >0x70000000 
 
 >Example5: All Colors OFF completely  
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
->0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
+>0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7F000000  
 
 >Example6: Return All Colors to normal operation  
