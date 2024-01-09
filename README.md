@@ -21,23 +21,40 @@ bits  7-0  set Red   intensity
 bits 15-8  set Green intensity
 bits 23-16 set Blue  intensity
 
-## Setting the Code Number(s):  
+
+## Setting the Code Number(s) or Setting States:  
 
 **32 Bit Format:**
 MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<time on\>  byte 4 \<time off\> LSB
 
+
+**Color/Cycles byte 1**
+This byte can either indicate the first color and cycles OR it can deliver a state change (special command) to any of the color outputs (ON, OFF, AUTO)
+
 1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit  
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  
-\<Cycles\>   9 possible flashes - 0x01 though 0x0E (1 through 9) Special Command Codes: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)  NOTE: Special Command codes apply to the states of all LEDs in a combination color.  
+\<Cycles\>   9 possible flashes - 0x01 though 0x0E (1 through 9) 
 
-Second byte is the Second Color/Cycles.  
-Third byte is on_time -- how long the color is on  
-Fourth byte is off_time  -- the time the LEDs are off between cycles.  
+Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)
 
-The values of on_time and off_time are shared between both possible color sequences. 
+> [!NOTE]  
+>Special Command codes do apply to the states of all LEDs in a combination color.  
 
 > [!WARNING]  
 >If you use the Special Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
+
+
+**Color/Cycles byte 2**
+Second byte is only the Second possible Color/Cycles indication.  
+
+
+**On Time byte 3**
+The values of on_time indicates how long and LED color will flash for.
+
+
+**On Time byte 4**
+ Off_time is the time between flashes.  These are shared between both possible color sequences.  NOTE:  Time between codes is always double off_time.
+
 
 ## Examples: 
 
