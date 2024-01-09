@@ -22,20 +22,20 @@ bits 15-8  set Green intensity
 bits 23-16 set Blue  intensity
 
 
-## Setting the Code Number(s) or Setting States:  
+## Setting the Code Number(s) or Setting LED States:  
 
 **32 Bit Format:**
 MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<time on\>  byte 4 \<time off\> LSB
 
 
 **Color/Cycles byte 1**
-This byte can either indicate the first color and cycles OR it can deliver a state change (special command) to any of the color outputs (ON, OFF, AUTO)
+This byte can either indicate the First color and cycles OR it can deliver a State Change (special command) to any of the color outputs (ON, OFF, AUTO)
 
 1st byte format for FirstColor is   MSBit  0x<Colors><Cycles>  LSBit  
 \<Colors\>   0x1 = ColorA, 0x2 = ColorB, 0x4 = ColorC (3 bits in use here)  
 \<Cycles\>   9 possible flashes - 0x01 though 0x0E (1 through 9) 
 
-Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here)
+Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State, 0x0E = AUTO State, 0x0F = OFF State (4 bits in use here).
 
 > [!NOTE]  
 >Special Command codes do apply to the states of all LEDs in a combination color.  
@@ -44,15 +44,18 @@ Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State,
 >If you use the Special Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
 
 
-**Color/Cycles byte 2**
-Second byte is only the Second possible Color/Cycles indication.  
+
+**Color/Cycles byte 2**  
+Second byte functions only as the Second possible Color/Cycles indication.  
 
 
-**On Time byte 3**
+
+**On_Time byte 3**  
 The values of on_time indicates how long and LED color will flash for.
 
 
-**On Time byte 4**
+
+**Off_Time byte 4**  
  Off_time is the time between flashes.  These are shared between both possible color sequences.  NOTE:  Time between codes is always double off_time.
 
 
@@ -68,22 +71,22 @@ The values of on_time indicates how long and LED color will flash for.
 >0x40000000 | 0x03000000 | 0x00000000 | 0x00000000 | 0x00000100 | 0x00000015  
 >0x43000115 is our 32 bit value
 
->Example3: Turn Red On continously  
+>Example3: Turn Red On continously  **(state change)**
 >Red Color - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x1 -------- F ------- 0 --------- 0 ----- 00 ------ 00  
 >0x10000000 
 
->Example4: All Colors On continously  
+>Example4: All Colors On continously  **(state change)**
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
 >0x70000000 
 
->Example5: All Colors OFF completely  
+>Example5: All Colors OFF completely  **(state change)**
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7F000000  
 
->Example6: Return All Colors to normal operation  
+>Example6: Return All Colors to normal operation  **(state change)**
 >All Colors - Cycles - NoColor - Cycles On-Time - Off-Time  
 >0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7E000000  
@@ -94,7 +97,7 @@ The values of on_time indicates how long and LED color will flash for.
 >0x41130912  
 
 
-PLEASE CALL THE SERVICE LIKE THIS:
+PLEASE CALL THE INDICATION SERVICE LIKE THIS:
 
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
@@ -106,6 +109,9 @@ xQueueSendToBack(queHandleCmdRequest, &val, 30);
 
 ## Block Diagrams  
 [Indication Block Diagrams](./docs/ind_sequences.md)
+
+## Flowcharts  
+[Indication Flowcharts](./docs/ind_flowcharts.md)
 
 ## Sequence Diagrams  
 [Indication Sequence Diagrams](./docs/ind_sequences.md)

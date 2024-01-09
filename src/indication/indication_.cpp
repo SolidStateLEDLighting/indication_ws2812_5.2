@@ -8,11 +8,11 @@ extern SemaphoreHandle_t semNVSEntry;
 extern SemaphoreHandle_t semIndRouteLock;
 
 /* Construction/Destruction */
-Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myRevNumber)
+Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNumber)
 {
     majorVer = myMajorVer; // We pass in the software version of the project so out LEDs
     minorVer = myMinorVer; // can flash this out during startup
-    revNumber = myRevNumber;
+    patchNumber = myPatchNumber;
 
     if (xSemaphoreTake(semSysEntry, portMAX_DELAY)) // Get everything from the system that we need.
     {
@@ -51,9 +51,9 @@ Indication::~Indication()
 void Indication::setShowFlags()
 {
     show = 0;
-    show |= _showInit;
+    // show |= _showInit;
     // show |= _showNVS;
-    show |= _showRun;
+    // show |= _showRun;
 }
 
 void Indication::setLogLevels()

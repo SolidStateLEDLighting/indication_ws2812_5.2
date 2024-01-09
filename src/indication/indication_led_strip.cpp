@@ -73,25 +73,12 @@ esp_err_t Indication::rmt_new_led_strip_encoder(const led_strip_encoder_config_t
 {
     esp_err_t ret = ESP_OK;
 
-    if (config == nullptr)
-    {
-        ESP_LOGE(TAG, "config encoder parameter can not be null...");
-        return ESP_FAIL;
-    }
-
-    if unlikely (ret_encoder == nullptr)
-    {
-        ESP_LOGE(TAG, "ret_encoder handle parameter can not be null...");
-        return ESP_FAIL;
-    }
+    ESP_RETURN_ON_FALSE(config, ESP_FAIL, TAG, "config encoder parameter can not be null...");
+    ESP_RETURN_ON_FALSE(ret_encoder, ESP_FAIL, TAG, "ret_encoder handle parameter can not be null...");
 
     rmt_led_strip_encoder_t *led_encoder = (rmt_led_strip_encoder_t *)calloc(1, sizeof(rmt_led_strip_encoder_t));
 
-    if unlikely (led_encoder == nullptr)
-    {
-        ESP_LOGE(TAG, "Memory for rmt_led_strip_encoder_t allocation failed...");
-        return ESP_FAIL;
-    }
+    ESP_RETURN_ON_FALSE(led_encoder, ESP_FAIL, TAG, "Memory for rmt_led_strip_encoder_t allocation failed...");
 
     led_encoder->base.encode = rmt_encode_led_strip;
     led_encoder->base.del = rmt_del_led_strip_encoder;
@@ -109,33 +96,29 @@ esp_err_t Indication::rmt_new_led_strip_encoder(const led_strip_encoder_config_t
         {bit1_duration0, 1, bit1_duration1, 0}, // bit1_duration0, bit1_level0, bit1_duration1, bit1_level1
         1,                                      // WS2812 transfer bit order: G7...G0R7...R0B7...B0
     };
-    ret = rmt_new_bytes_encoder(&bytes_encoder_config, &led_encoder->bytes_encoder);
 
-    if unlikely (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "%s::rmt_new_bytes_encoder() failed.  err = %d - %s", __func__, ret, esp_err_to_name(ret));
-        return ESP_FAIL;
-    }
+    ESP_RETURN_ON_ERROR(rmt_new_bytes_encoder(&bytes_encoder_config, &led_encoder->bytes_encoder), "IND", "rmt_new_bytes_encoder() failed.");
 
     rmt_copy_encoder_config_t copy_encoder_config = {};
 
     ret = rmt_new_copy_encoder(&copy_encoder_config, &led_encoder->copy_encoder);
 
-    if unlikely (ret != ESP_OK)
+    if (ret != ESP_OK)
     {
         ESP_LOGE(TAG, "%s::rmt_new_copy_encoder() failed.  err = %d - %s", __func__, ret, esp_err_to_name(ret));
 
         if (led_encoder->bytes_encoder) // Clean up the encoder from previous area
             rmt_del_encoder(led_encoder->bytes_encoder);
 
-        return ESP_FAIL;
+        return ret;
     }
+
     uint32_t reset_ticks = config->resolution / 1000000 * 50 / 2; // reset code duration defaults to 50us
 
     led_encoder->reset_code = (rmt_symbol_word_t){
         {(uint16_t)reset_ticks, 0, (uint16_t)reset_ticks, 0},
     };
-    *ret_encoder = &led_encoder->base;
 
+    *ret_encoder = &led_encoder->base;
     return ESP_OK;
 }

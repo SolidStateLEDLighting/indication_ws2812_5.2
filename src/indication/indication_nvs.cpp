@@ -22,7 +22,7 @@ bool Indication::restoreVariablesFromNVS(void)
         if (show & _showNVS)
             routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
 
-        if unlikely (nvs->openNVSStorage("indication", true) == false)
+        if (nvs->openNVSStorage("indication", true) == false)
         {
             ESP_LOGE(TAG, "Error, Unable to OpenNVStorage inside restoreVariablesFromNVS");
             xSemaphoreGive(semNVSEntry);
@@ -194,7 +194,7 @@ bool Indication::saveVariablesToNVS(void)
         if (show & _showNVS)
             routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
 
-        if unlikely (nvs->openNVSStorage("indication", true) == false)
+        if (nvs->openNVSStorage("indication", true) == false)
         {
             routeLogByValue(LOG_TYPE::ERROR, "Error, Unable to OpenNVStorage inside saveVariablesToNVS");
             xSemaphoreGive(semNVSEntry);

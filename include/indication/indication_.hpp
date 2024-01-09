@@ -38,7 +38,7 @@ extern "C"
 
         uint8_t majorVer; // Used to flash the firmware version number on start-up.
         uint8_t minorVer;
-        uint8_t revNumber;
+        uint8_t patchNumber;
 
         uint8_t runStackSizeK = 5; // Default/Minimum stacksize
 
@@ -52,7 +52,7 @@ extern "C"
         /* freeRTOS Related Items*/
         IND_OP indOP = IND_OP::Run;
         IND_INIT initIndStep = IND_INIT::Finished;
-        IND_STATES indStates = IND_STATES::Init;
+        IND_STATES indStates = IND_STATES::Idle;
 
         TaskHandle_t taskHandleRun = nullptr;
         QueueHandle_t queHandleIndCmdRequest = nullptr; // IND <-- ?? (Request Queue is here)
@@ -104,7 +104,7 @@ extern "C"
         static void runMarshaller(void *);
         void run(void);
 
-        esp_err_t startIndication(uint32_t);
+        void startIndication(uint32_t);
         void setAndClearColors(uint8_t, uint8_t);
         void resetIndication(void);
 
@@ -123,6 +123,7 @@ extern "C"
         static esp_err_t rmt_led_strip_encoder_reset(rmt_encoder_t *encoder);
 
         /* Logging */
+        std::string errMsg = ""; // Variable used for "ByValue" call.
         void routeLogByRef(LOG_TYPE, std::string *);
         void routeLogByValue(LOG_TYPE, std::string);
 

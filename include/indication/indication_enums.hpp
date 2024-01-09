@@ -60,17 +60,20 @@ enum class IND_OP : uint8_t // Primary Operations
 {
     Run,
     Init,
+    Error,
+    Idle,
+    Idle_Silent,
 };
 
 enum class IND_INIT : uint8_t
 {
     Start,
     Init_Queues_Commands,
-    Early_Release,
-    Set_Variables_From_Config,
     CreateRMTTxChannel,
     CreateRMTEncoder,
     EnableRMTChannel,
+    Set_LED_Initial_States,
+    Early_Release,
     ColorA_On,
     ColorA_Off,
     ColorB_On,
@@ -82,7 +85,7 @@ enum class IND_INIT : uint8_t
 
 enum class IND_STATES : uint8_t
 {
-    Init,
+    Idle,
     Show_FirstColor,
     FirstColor_Dark,
     Show_SecondColor,
