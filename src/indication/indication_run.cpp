@@ -131,8 +131,7 @@ void Indication::run(void)
                 {
                     uint8_t newValue = (int)indTaskNotifyValue & 0x000000FF;
 
-                    if (show & _showRun)
-                        ESP_LOGW(TAG, "Task notification Colors 0x%02X  newValue is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), newValue);
+                    // ESP_LOGW(TAG, "Task notification Colors 0x%02X  newValue is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), newValue);
 
                     if (newValue > 0) // All notifications here be applied to all colors may be set at the same time.
                     {
@@ -597,8 +596,8 @@ void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)
     led_strip_pixels[2] = cCurrValue; // Blue
 
     //
-    // ESP_LOGI(TAG, "SetAndClearColors 0x%02X 0x%02X", SetColors, ClearColors); // Debug info
-    // ESP_LOGI(TAG, "Colors Curr/Default  %d/%d   %d/%d   %d/%d", aCurrValue, aDefaultLevel, bCurrValue, bDefaultLevel, cCurrValue, cDefaultValue);
+    // ESP_LOGW(TAG, "SetAndClearColors 0x%02X 0x%02X", SetColors, ClearColors); // Debug info
+    // ESP_LOGW(TAG, "Colors Curr/Default  %d/%d   %d/%d   %d/%d", aCurrValue, aDefaultLevel, bCurrValue, bDefaultLevel, cCurrValue, cDefaultValue);
     //
     if (ClearColors & COLORA_Bit) // Seeing the bit to Clear this color
     {

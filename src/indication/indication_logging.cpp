@@ -1,6 +1,13 @@
 #include "indication/indication_.hpp"
 
+/* Local Semaphore */
 SemaphoreHandle_t semIndRouteLock = NULL;
+
+//
+// Routing has been added to the project because Log messages will be sent to cloud monitoring and storage services in the future.
+// This project does not include IOT services yet.
+// ALSO, we have a plan (impliemented in more advanced work) to store Error messages in NVS so they can be reviewed even after a reboot.
+//
 
 /* Logging */
 void Indication::routeLogByRef(LOG_TYPE _type, std::string *_msg)
