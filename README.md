@@ -59,7 +59,7 @@ The values of on_time indicates how long and LED color will flash for.
  Off_time is the time between flashes.  These are shared between both possible color sequences.  NOTE:  Time between codes is always double off_time.
 
 
-## Examples: 
+## Command Examples: 
 
 >Example1: Red, 1 flash, Green, 2 flashes long on-time long off-time  
 >ColorA 0x10, Cycles 0x01, ColorB 0x20 , Cycles 0x02, On-Time 0x20, Off-Time 0x30  
@@ -96,12 +96,33 @@ The values of on_time indicates how long and LED color will flash for.
 >0x4 -------- 1 ------ 1 --------- 3 ----- 09 ------ 12  
 >0x41130912  
 
-
 PLEASE CALL THE INDICATION SERVICE LIKE THIS:
 
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
 
 xQueueSendToBack(queHandleCmdRequest, &val, 30);
+
+
+## Notification Examples: 
+
+**Remember, a notification command only sets the LEDs brightness level.**  
+
+int32_t brightnessLevel = 0;  
+brightnessLevel = (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // First we set the target color bit  
+brightnessLevel |= 20;                                          // Supply the brightness value  
+
+while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
+     vTaskDelay(pdMS_TO_TICKS(10));  
+
+
+brightnessSetting |= (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // Red
+brightnessSetting |= (uint32_t)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS; // Blue
+brightnessLevel |= 50;                                             // Supply the brightness value  
+
+while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
+     vTaskDelay(pdMS_TO_TICKS(10));
+
+
 
 
 ## Abstractions  

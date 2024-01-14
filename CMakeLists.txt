@@ -1,5 +1,5 @@
 #
-FILE(GLOB_RECURSE SOURCES src/indication/*.cpp)
+FILE(GLOB_RECURSE SOURCES src/*.cpp)
 #
 # Included components which are exposed in public header files.
 set(INDICATION_REQUIRES
