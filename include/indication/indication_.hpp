@@ -49,7 +49,7 @@ extern "C"
         void createSemaphores(void);
         void setConditionalCompVariables(void);
 
-        uint8_t runStackSizeK = 5; // Default/Minimum stacksize
+        uint8_t runStackSizeK = 6; // Default/Minimum stacksize
         TaskHandle_t taskHandleRun = nullptr;
 
         IND_OP indOP = IND_OP::Run;                // Object States
@@ -63,7 +63,7 @@ extern "C"
 
         uint8_t aDefaultLevel = 1; // Default values are minimum brightness levels.  Without minimums, if the LED doesn't work,
         uint8_t bDefaultLevel = 1; // we won't know what the problem is during an "on" time.  CurrValues and SetValues will never
-        uint8_t cDefaultLevel = 1; // be allowed to drop below these minumums.  Default values are set for hardware when built and tested.
+        uint8_t cDefaultLevel = 5; // be allowed to drop below these minumums.  Default values are set for hardware when built and tested.
 
         uint8_t aSetLevel = 0; // Set values are recorded in nvs and restored on start-up
         uint8_t bSetLevel = 0;

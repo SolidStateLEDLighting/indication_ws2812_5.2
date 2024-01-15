@@ -22,7 +22,7 @@ void Indication::run(void)
     {
         switch (indOP)
         {
-        case IND_OP::Run:
+        case IND_OP::Run: // We would like to achieve about a 4Hz entry cadence in the Run state - WHEN NOT INDICATING
         {
             if (IsIndicating)
             {
@@ -144,7 +144,7 @@ void Indication::run(void)
                         if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
                             cSetLevel = newValue;
 
-                        saveToNVSDelayCount = 5;
+                        saveToNVSDelayCount = 8;
                     }
                 }
             }
@@ -152,9 +152,8 @@ void Indication::run(void)
             if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(195))) // We can wait here most of the time for requests
                 startIndication(value);
 
-            if (saveToNVSDelayCount > 0)
+            if (saveToNVSDelayCount > 0) // Counts of 4 equal about 1 second.
             {
-                // ESP_LOGW(TAG, "%d", saveToNVSDelayCount);
                 if (--saveToNVSDelayCount < 1)
                 {
                     if (!saveVariablesToNVS())

@@ -8,20 +8,13 @@ extern SemaphoreHandle_t semNVSEntry;
 /* NVS Routines */
 bool Indication::restoreVariablesFromNVS(void)
 {
-    if (show & _showNVS)
-        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "()");
-
     uint8_t temp = 0;
-    bool successFlag = true;
+
+    if (nvs == nullptr)
+        nvs = NVS::getInstance(); // First, get the nvs object handle if didn't already.
 
     if (xSemaphoreTake(semNVSEntry, portMAX_DELAY) == pdTRUE)
     {
-        if (nvs == nullptr)
-            nvs = NVS::getInstance(); // First, get the nvs object handle if didn't already.
-
-        if (show & _showNVS)
-            routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
-
         if (nvs->openNVSStorage("indication", true) == false)
         {
             routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "Error, Unable to OpenNVStorage inside restoreVariablesFromNVS");
@@ -29,6 +22,11 @@ bool Indication::restoreVariablesFromNVS(void)
             return false;
         }
     }
+
+    if (show & _showNVS)
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): indication namespace start");
+
+    bool successFlag = true;
 
     if (successFlag) // Restore runStackSizeK
     {
@@ -43,7 +41,7 @@ bool Indication::restoreVariablesFromNVS(void)
             }
 
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizeK is " + std::to_string(runStackSizeK));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizeK       is " + std::to_string(runStackSizeK));
         }
         else
         {
@@ -57,7 +55,7 @@ bool Indication::restoreVariablesFromNVS(void)
         if (nvs->getU8IntegerFromNVS("aState", (uint8_t *)&aState))
         {
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aState is " + getStateText(aState));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aState              is " + getStateText(aState));
         }
         else
         {
@@ -71,7 +69,7 @@ bool Indication::restoreVariablesFromNVS(void)
         if (nvs->getU8IntegerFromNVS("bState", (uint8_t *)&bState))
         {
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bState is " + getStateText(bState));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bState              is " + getStateText(bState));
         }
         else
         {
@@ -85,7 +83,7 @@ bool Indication::restoreVariablesFromNVS(void)
         if (nvs->getU8IntegerFromNVS("cState", (uint8_t *)&cState))
         {
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cState is " + getStateText(cState));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cState              is " + getStateText(cState));
         }
         else
         {
@@ -104,11 +102,11 @@ bool Indication::restoreVariablesFromNVS(void)
             if (aSetLevel < aDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
             {
                 aSetLevel = aDefaultLevel;
-                saveToNVSDelayCount = 10;
+                saveToNVSDelayCount = 8;
             }
 
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aSetLevel is " + std::to_string(aSetLevel));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): aSetLevel           is " + std::to_string(aSetLevel));
         }
         else
         {
@@ -127,11 +125,11 @@ bool Indication::restoreVariablesFromNVS(void)
             if (bSetLevel < bDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
             {
                 bSetLevel = bDefaultLevel;
-                saveToNVSDelayCount = 10;
+                saveToNVSDelayCount = 8;
             }
 
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bSetLevel is " + std::to_string(bSetLevel));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): bSetLevel           is " + std::to_string(bSetLevel));
         }
         else
         {
@@ -150,11 +148,11 @@ bool Indication::restoreVariablesFromNVS(void)
             if (cSetLevel < cDefaultLevel) // Make sure SetLevel is equal or above DefaultLevel
             {
                 cSetLevel = cDefaultLevel;
-                saveToNVSDelayCount = 10;
+                saveToNVSDelayCount = 8;
             }
 
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cSetLevel is " + std::to_string(cSetLevel));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): cSetLevel           is " + std::to_string(cSetLevel));
         }
         else
         {
@@ -164,7 +162,7 @@ bool Indication::restoreVariablesFromNVS(void)
     }
 
     if (show & _showNVS)
-        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): closeNVStorage 'indication'");
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): indication namespace end");
 
     if (successFlag)
     {
@@ -184,16 +182,16 @@ bool Indication::restoreVariablesFromNVS(void)
 
 bool Indication::saveVariablesToNVS(void)
 {
-    if (show & _showNVS)
-        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "()");
-
-    bool successFlag = true;
+    //
+    // The best idea is to save only changed values.  Right now, we try to save everything.
+    // The NVS object we call will avoid over-writing variables which already hold the correct value.
+    // Later, we may try to add and track 'dirty' bits to avoid trying to save a value that hasn't changed.
+    //
+    if (nvs == nullptr)
+        nvs = NVS::getInstance(); // First, get the nvs object handle if didn't already.
 
     if (xSemaphoreTake(semNVSEntry, portMAX_DELAY) == pdTRUE)
     {
-        if (show & _showNVS)
-            routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): openNVSStorage 'indication'");
-
         if (nvs->openNVSStorage("indication", true) == false)
         {
             routeLogByValue(LOG_TYPE::ERROR, "Error, Unable to OpenNVStorage inside saveVariablesToNVS");
@@ -202,12 +200,17 @@ bool Indication::saveVariablesToNVS(void)
         }
     }
 
+    if (show & _showNVS)
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): indication namespace start");
+
+    bool successFlag = true;
+
     if (successFlag) // Save runStackSizeK
     {
         if (nvs->saveU8IntegerToNVS("runStackSizeK", runStackSizeK))
         {
             if (show & _showNVS)
-                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizeK = " + std::to_string(runStackSizeK));
+                routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizeK       = " + std::to_string(runStackSizeK));
         }
         else
         {
@@ -301,7 +304,7 @@ bool Indication::saveVariablesToNVS(void)
     }
 
     if (show & _showNVS)
-        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): closeNVStorage 'indication'");
+        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): indication namespace end");
 
     if (successFlag)
     {
