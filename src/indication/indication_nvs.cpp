@@ -24,7 +24,7 @@ bool Indication::restoreVariablesFromNVS(void)
 
         if (nvs->openNVSStorage("indication", true) == false)
         {
-            ESP_LOGE(TAG, "Error, Unable to OpenNVStorage inside restoreVariablesFromNVS");
+            routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "Error, Unable to OpenNVStorage inside restoreVariablesFromNVS");
             xSemaphoreGive(semNVSEntry);
             return false;
         }

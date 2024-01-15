@@ -105,7 +105,7 @@ esp_err_t Indication::rmt_new_led_strip_encoder(const led_strip_encoder_config_t
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(TAG, "%s::rmt_new_copy_encoder() failed.  err = %d - %s", __func__, ret, esp_err_to_name(ret));
+        routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): rmt_new_copy_encoder() Failed: err = " + std::string(esp_err_to_name(ret)));
 
         if (led_encoder->bytes_encoder) // Clean up the encoder from previous area
             rmt_del_encoder(led_encoder->bytes_encoder);

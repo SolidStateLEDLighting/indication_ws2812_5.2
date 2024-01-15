@@ -50,10 +50,15 @@ Indication::~Indication()
 /* Construction Functions */
 void Indication::setShowFlags()
 {
-    show = 0;
+    show = 0; // Set show flags
     // show |= _showInit;
     // show |= _showNVS;
     // show |= _showRun;
+    // show |= _showEvents;
+    // show |= _showJSONProcessing;
+    // show |=  _showDebugging
+    // show |=  _showProcess
+    // show |=  _showPayload
 }
 
 void Indication::setLogLevels()

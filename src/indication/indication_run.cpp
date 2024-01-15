@@ -158,7 +158,7 @@ void Indication::run(void)
                 if (--saveToNVSDelayCount < 1)
                 {
                     if (!saveVariablesToNVS())
-                        ESP_LOGE(TAG, "saveVariablesToNVS() failed.");
+                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "() saveVariablesToNVS() failed.");
                 }
             }
             break;
@@ -595,10 +595,6 @@ void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)
     led_strip_pixels[1] = aCurrValue; // Red
     led_strip_pixels[2] = cCurrValue; // Blue
 
-    //
-    // ESP_LOGW(TAG, "SetAndClearColors 0x%02X 0x%02X", SetColors, ClearColors); // Debug info
-    // ESP_LOGW(TAG, "Colors Curr/Default  %d/%d   %d/%d   %d/%d", aCurrValue, aDefaultLevel, bCurrValue, bDefaultLevel, cCurrValue, cDefaultValue);
-    //
     if (ClearColors & COLORA_Bit) // Seeing the bit to Clear this color
     {
         if (aState == LED_STATE::ON)
@@ -667,10 +663,6 @@ void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)
 
     ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_setAndClearColors_err, TAG, "rmt_transmit() failed");
     ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_setAndClearColors_err, TAG, "rmt_tx_wait_all_done() failed");
-
-    if (ret != ESP_OK)
-        ESP_LOGE(TAG, "::%s %s", __func__, esp_err_to_name(ret));
-
     return;
 
 ind_setAndClearColors_err:
