@@ -29,7 +29,7 @@ extern "C"
         QueueHandle_t &getCmdRequestQueue(void);
 
         /* Indication_Diagnostics */
-        void printTaskInfo();
+        void printTaskInfoByColumns();
 
     private:
         char TAG[5] = "_ind";
@@ -68,6 +68,9 @@ extern "C"
         uint8_t aSetLevel = 0; // Set values are recorded in nvs and restored on start-up
         uint8_t bSetLevel = 0;
         uint8_t cSetLevel = 0;
+
+        /* Indication_Diagnostics */
+        void logTaskInfo();
 
         /* Indication_LED_Strip */
         rmt_channel_handle_t led_chan = NULL;
