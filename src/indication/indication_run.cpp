@@ -155,10 +155,7 @@ void Indication::run(void)
             if (saveToNVSDelayCount > 0) // Counts of 4 equal about 1 second.
             {
                 if (--saveToNVSDelayCount < 1)
-                {
-                    if (!saveVariablesToNVS())
-                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "() saveVariablesToNVS() failed.");
-                }
+                    saveVariablesToNVS();
             }
             break;
         }

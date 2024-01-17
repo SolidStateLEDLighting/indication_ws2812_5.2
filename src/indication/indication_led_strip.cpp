@@ -7,8 +7,8 @@
 esp_err_t Indication::rmt_del_led_strip_encoder(rmt_encoder_t *encoder)
 {
     rmt_led_strip_encoder_t *led_encoder = __containerof(encoder, rmt_led_strip_encoder_t, base);
-    ESP_RETURN_ON_ERROR(rmt_del_encoder(led_encoder->bytes_encoder), "IND", "rmt_del_encoder() failed.");
-    ESP_RETURN_ON_ERROR(rmt_del_encoder(led_encoder->copy_encoder), "IND", "rmt_del_encoder() failed.");
+    ESP_RETURN_ON_ERROR(rmt_del_encoder(led_encoder->bytes_encoder), "_ind", "rmt_del_encoder() failed.");
+    ESP_RETURN_ON_ERROR(rmt_del_encoder(led_encoder->copy_encoder), "_ind", "rmt_del_encoder() failed.");
     free(led_encoder);
     return ESP_OK;
 }
@@ -63,8 +63,8 @@ size_t Indication::rmt_encode_led_strip(rmt_encoder_t *encoder, rmt_channel_hand
 esp_err_t Indication::rmt_led_strip_encoder_reset(rmt_encoder_t *encoder)
 {
     rmt_led_strip_encoder_t *led_encoder = __containerof(encoder, rmt_led_strip_encoder_t, base);
-    ESP_RETURN_ON_ERROR(rmt_encoder_reset(led_encoder->bytes_encoder), "IND", "rmt_encoder_reset() failed.");
-    ESP_RETURN_ON_ERROR(rmt_encoder_reset(led_encoder->copy_encoder), "IND", "rmt_encoder_reset() failed.");
+    ESP_RETURN_ON_ERROR(rmt_encoder_reset(led_encoder->bytes_encoder), "_ind", "rmt_encoder_reset() failed.");
+    ESP_RETURN_ON_ERROR(rmt_encoder_reset(led_encoder->copy_encoder), "_ind", "rmt_encoder_reset() failed.");
     led_encoder->state = RMT_ENCODING_RESET;
     return ESP_OK;
 }

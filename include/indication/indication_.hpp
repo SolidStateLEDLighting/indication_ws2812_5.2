@@ -93,8 +93,8 @@ extern "C"
 
         /* Indication_NVS */
         uint8_t saveToNVSDelayCount = 0;
-        bool restoreVariablesFromNVS(void);
-        bool saveVariablesToNVS(void);
+        void restoreVariablesFromNVS(void);
+        void saveVariablesToNVS(void);
 
         /* Indication_Run */
         bool IsIndicating = false;
