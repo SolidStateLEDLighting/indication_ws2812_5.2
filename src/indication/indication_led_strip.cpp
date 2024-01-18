@@ -3,6 +3,10 @@
 #include "driver/rmt_types.h"
 #include "driver/rmt_tx.h"
 
+//
+// These routines are copied right out of Espressif's IDF example and we maintain their lower case snake naming convention.
+// Other indication components which use a different type of LED would of course not need these routines.
+
 /* LED Strip Routines */
 esp_err_t Indication::rmt_del_led_strip_encoder(rmt_encoder_t *encoder)
 {

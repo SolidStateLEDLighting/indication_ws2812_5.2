@@ -22,7 +22,7 @@ void Indication::run(void)
     {
         switch (indOP)
         {
-        case IND_OP::Run: // We would like to achieve about a 4Hz entry cadence in the Run state - WHEN NOT INDICATING
+        case IND_OP::Run: // We would like to achieve about a 5Hz entry cadence in the Run state - WHEN NOT INDICATING
         {
             if (IsIndicating)
             {
@@ -123,7 +123,7 @@ void Indication::run(void)
 
                 break;
             }
-            else // When we are not indicating -- we are looking for notifications or incoming commands
+            else // When we are not indicating -- we are looking for notifications or incoming commands.
             {
                 indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5)));
 

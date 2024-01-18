@@ -1,15 +1,17 @@
 #include "indication/indication_.hpp"
-
+#include "system_.hpp" // Class structure and variables
+//
+// I bring most logging formation here (inside each object) because in a more advanced project, I route logging
+// information back to the cloud.  We could also just as easily log to a file storage location like an SD card.
+//
+// At is also at this location (in my more advanced project) that I store Error information to Flash.  This makes is possible
+// to transmit error logging to the cloud after a reboot.
+//
 /* Local Semaphore */
 SemaphoreHandle_t semIndRouteLock = NULL;
 
-//
-// Routing has been added to the project because Log messages will be sent to cloud monitoring and storage services in the future.
-// This project does not include IOT services yet.
-// ALSO, we have a plan (impliemented in more advanced work) to store Error messages in NVS so they can be reviewed even after a reboot.
-//
-
 /* Logging */
+// Logging by reference potentially allows a better algorithm for accessing large data throught a pointer.
 void Indication::routeLogByRef(LOG_TYPE _type, std::string *_msg)
 {
     routeLogByValue(_type, *_msg); // Make a copy and see if this will work for all use cases where the msg is large.
