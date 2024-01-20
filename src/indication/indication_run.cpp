@@ -18,6 +18,8 @@ void Indication::run(void)
     TickType_t startTime;
     TickType_t waitTime = 100;
 
+    resetIndication();
+
     while (true)
     {
         switch (indOP)

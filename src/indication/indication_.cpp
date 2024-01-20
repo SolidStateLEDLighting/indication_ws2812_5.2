@@ -10,9 +10,9 @@ extern SemaphoreHandle_t semIndRouteLock;
 /* Construction/Destruction */
 Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNumber)
 {
-    majorVer = myMajorVer; // We pass in the software version of the project so out LEDs
-    minorVer = myMinorVer; // can flash this out during startup
-    patchNumber = myPatchNumber;
+    majorVer = myMajorVer;       // We pass in the software version of the project so our LEDs can flash this number during startup
+    minorVer = myMinorVer;       //
+    patchNumber = myPatchNumber; //
 
     if (xSemaphoreTake(semSysEntry, portMAX_DELAY)) // Get everything from the system that we need.
     {
@@ -26,11 +26,10 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
     createSemaphores();        // Creates any locking semaphores owned by this object.
     restoreVariablesFromNVS(); // Brings back all our persistant data.
 
-    resetIndication();
+    xSemaphoreTake(semIndEntry, portMAX_DELAY); // Take the semaphore.  This gives us a locking mechanism for initialization.
 
-    initIndStep = IND_INIT::Start; // Allow the object to initialize.
+    initIndStep = IND_INIT::Start; // Allow the object to initialize and then run.
     indOP = IND_OP::Init;
-
     xTaskCreate(runMarshaller, "ind_run", 1024 * runStackSizeK, this, 6, &taskHandleRun); // Low number indicates low priority task
 }
 
@@ -73,12 +72,8 @@ void Indication::setLogLevels()
 void Indication::createSemaphores()
 {
     semIndEntry = xSemaphoreCreateBinary(); // External access semaphore
-
     if (semIndEntry != NULL)
-    {
         xSemaphoreGive(semIndEntry);
-        xSemaphoreTake(semIndEntry, portMAX_DELAY); // Take the semaphore.  This gives us a locking mechanism for initialization.
-    }
 
     semIndRouteLock = xSemaphoreCreateBinary();
     if (semIndRouteLock != NULL)
