@@ -47,7 +47,6 @@ extern "C"
         void setShowFlags(void); // Pre-Task Functions
         void setLogLevels(void);
         void createSemaphores(void);
-        void setConditionalCompVariables(void);
 
         uint8_t runStackSizeK = 6; // Default/Minimum stacksize
         TaskHandle_t taskHandleRun = nullptr;

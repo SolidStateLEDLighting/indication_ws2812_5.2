@@ -21,11 +21,10 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
         xSemaphoreGive(semSysEntry);
     }
 
-    setShowFlags();                // Static enabling of logging statements for any area of concern during development.
-    setLogLevels();                // Manually sets log levels for tasks down the call stack for development.
-    createSemaphores();            // Create any locking semaphores owned by this object.
-    restoreVariablesFromNVS();     // Bring back all our persistant data.
-    setConditionalCompVariables(); // Converts all conditional compilation to varibles.
+    setShowFlags();            // Static enabling of logging statements for any area of concern during development.
+    setLogLevels();            // Manually sets log levels for tasks down the call stack for development.
+    createSemaphores();        // Creates any locking semaphores owned by this object.
+    restoreVariablesFromNVS(); // Brings back all our persistant data.
 
     resetIndication();
 
@@ -84,10 +83,6 @@ void Indication::createSemaphores()
     semIndRouteLock = xSemaphoreCreateBinary();
     if (semIndRouteLock != NULL)
         xSemaphoreGive(semIndRouteLock);
-}
-
-void Indication::setConditionalCompVariables()
-{
 }
 
 /* Public Functions */
