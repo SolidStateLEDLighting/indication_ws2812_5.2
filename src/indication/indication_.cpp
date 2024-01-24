@@ -30,7 +30,7 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
 
     initIndStep = IND_INIT::Start; // Allow the object to initialize and then run.
     indOP = IND_OP::Init;
-    xTaskCreate(runMarshaller, "ind_run", 1024 * runStackSizeK, this, 6, &taskHandleRun); // Low number indicates low priority task
+    xTaskCreate(runMarshaller, "ind_run", 1024 * runStackSizeK, this, TASK_PRIORITY_OFFSET_LOW, &taskHandleRun); // Low number indicates low priority task
 }
 
 Indication::~Indication()
