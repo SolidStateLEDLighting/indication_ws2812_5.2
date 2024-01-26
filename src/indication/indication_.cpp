@@ -71,6 +71,7 @@ Indication::~Indication()
 /* Construction Functions */
 void Indication::setShowFlags()
 {
+    // show variable is system wide defined and this exposes for viewing any general processes.
     show = 0; // Set show flags
     // show |= _showInit;
     // show |= _showNVS;
@@ -81,6 +82,7 @@ void Indication::setShowFlags()
     // show |=  _showProcess
     // show |=  _showPayload
 
+    // showIND exposes indication sub-processes.
     showIND = 0;
     // showIND |= _showINDShdnSteps;
 }
