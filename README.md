@@ -112,7 +112,7 @@ brightnessLevel = (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // First we set 
 brightnessLevel |= 20;                                          // Supply the brightness value  
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
-     vTaskDelay(pdMS_TO_TICKS(10));  
+     vTaskDelay(pdMS_TO_TICKS(50));  
 
 
 brightnessSetting |= (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // Red
@@ -120,7 +120,7 @@ brightnessSetting |= (uint32_t)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS; // Blue
 brightnessLevel |= 50;                                             // Supply the brightness value  
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
-     vTaskDelay(pdMS_TO_TICKS(10));
+     vTaskDelay(pdMS_TO_TICKS(50));
 
 
 
