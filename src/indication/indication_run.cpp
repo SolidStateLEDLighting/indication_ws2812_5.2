@@ -1,11 +1,14 @@
 #include "indication/indication_.hpp"
 
+#include "driver/rmt_tx.h"
+
 extern SemaphoreHandle_t semIndEntry;
 
 void Indication::runMarshaller(void *arg)
 {
     ((Indication *)arg)->run();
-    vTaskDelete(NULL);
+    ((Indication *)arg)->taskHandleRun = nullptr;
+    vTaskDelete(((Indication *)arg)->taskHandleRun);
 }
 
 void Indication::run(void)
@@ -131,33 +134,105 @@ void Indication::run(void)
 
                 if (indTaskNotifyValue > IND_NOTIFY::NONE)
                 {
-                    uint8_t newValue = (int)indTaskNotifyValue & 0x000000FF;
+                    // ESP_LOGW(TAG, "Task notification Colors 0x%02X  Value is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), (int)indTaskNotifyValue & 0x000000FF);
 
-                    // ESP_LOGW(TAG, "Task notification Colors 0x%02X  newValue is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), newValue);
-
-                    if (newValue > 0) // All notifications here be applied to all colors may be set at the same time.
+                    if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS)
                     {
-                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS)
-                            aSetLevel = newValue;
-
-                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
-                            bSetLevel = newValue;
-
-                        if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
-                            cSetLevel = newValue;
-
+                        aSetLevel = (int)indTaskNotifyValue & 0x000000FF;
                         saveToNVSDelayCount = 8;
                     }
+                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
+                    {
+                        bSetLevel = (int)indTaskNotifyValue & 0x000000FF;
+                        saveToNVSDelayCount = 8;
+                    }
+
+                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
+                    {
+                        cSetLevel = (int)indTaskNotifyValue & 0x000000FF;
+                        saveToNVSDelayCount = 8;
+                    }
+                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::CMD_SHUT_DOWN)
+                    {
+                        indShdnStep = IND_SHUTDOWN::Start;
+                        indOP = IND_OP::Shutdown;
+                        break;
+                    }
+                    else
+                        routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unhandled TaskNotification");
                 }
             }
 
-            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(195))) // We can wait here most of the time for requests
-                startIndication(value);
+            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(195)) == pdTRUE) // We can wait here most of the time for requests
+            {
+                // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
+                startIndication(value); // We have an indication value
+            }
 
             if (saveToNVSDelayCount > 0) // Counts of 4 equal about 1 second.
             {
                 if (--saveToNVSDelayCount < 1)
                     saveVariablesToNVS();
+            }
+            break;
+        }
+
+            // Positionally, it is important for Shutdown to be serviced right after it is called.  We don't want other possible operations
+            // becoming active unexepectedly.  This is somewhat important.
+        case IND_OP::Shutdown:
+        {
+            // A shutdown is a complete undoing of all items that were established or created with our run thread.
+            // If we are connected then disconnect.  If we created resources, we must dispose of them here.
+            switch (indShdnStep)
+            {
+            case IND_SHUTDOWN::Start:
+            {
+                if (showIND & _showINDShdnSteps)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Start");
+
+                indShdnStep = IND_SHUTDOWN::DisableAndDeleteRMTChannel;
+                break;
+            }
+
+            case IND_SHUTDOWN::DisableAndDeleteRMTChannel:
+            {
+                if (showIND & _showINDShdnSteps)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::DisableAndDeleteRMTChannel - Step " + std::to_string((int)IND_SHUTDOWN::DisableAndDeleteRMTChannel));
+
+                ESP_GOTO_ON_ERROR(rmt_disable(led_chan), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_disable() failed");
+                ESP_GOTO_ON_ERROR(rmt_del_encoder(led_encoder), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_del_encoder() failed");
+                ESP_GOTO_ON_ERROR(rmt_del_channel(led_chan), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_del_channel() failed");
+                indShdnStep = IND_SHUTDOWN::Final_Items;
+                break;
+
+            ind_disableAndDeleteRMTChannel_err:
+                errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                indOP = IND_OP::Error;
+                break;
+            }
+
+            case IND_SHUTDOWN::Final_Items:
+            {
+                if (showIND & _showINDShdnSteps)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Final_Items - Step " + std::to_string((int)IND_SHUTDOWN::Final_Items));
+
+                /* Delete Command Queue */
+                if (queHandleIndCmdRequest != nullptr)
+                {
+                    vQueueDelete(queHandleIndCmdRequest);
+                    queHandleIndCmdRequest = nullptr;
+                }
+
+                indShdnStep = IND_SHUTDOWN::Finished;
+                break;
+            }
+
+            case IND_SHUTDOWN::Finished:
+            {
+                if (showIND & _showINDShdnSteps)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Finished");
+                return; // This exits the run function. (notice how the compiler doesn't complain about the missing break statement)
+            }
             }
             break;
         }
@@ -224,6 +299,7 @@ void Indication::run(void)
                 };
 
                 ESP_GOTO_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), ind_createRMTEncoder_err, TAG, "rmt_new_led_strip_encoder() failed");
+
                 initIndStep = IND_INIT::EnableRMTChannel;
                 break;
 

@@ -1,0 +1,55 @@
+// These code snippets can be copied and pasted into system_gpio.cpp and triggered by SW1 for testing.
+
+// 2) Destroying and Creating an Indication Object
+//
+
+case 0: // Destroying indication
+{
+    if (semIndEntry != nullptr)
+    {
+        xSemaphoreTake(semIndEntry, portMAX_DELAY); // Wait here until we gain the lock.
+
+        if (ind != nullptr) // Make sure we already have a indication object
+        {
+            // Send out notifications to any object that uses indication -- and tell them indication is no longer available.
+
+            taskHandleIndRun = nullptr;       // Reset the wifi handles
+            queHandleIndCmdRequest = nullptr; //
+
+            delete ind; // Locking the object will be done inside the destructor.
+
+            if (ind != nullptr)
+                ind = nullptr; // Destructor will not set pointer null.  We do that manually.
+
+            ESP_LOGW(TAG, "indication deleted");
+        }
+    }
+    else
+        ESP_LOGW(TAG, "semIndEntry is not valid");
+    break;
+}
+
+case 1: // Creating Indication
+{
+    if (ind == nullptr)
+        ind = new Indication(1, 2, 3);
+
+    if (ind != nullptr) // Make sure memory was allocated first
+    {
+        if (xSemaphoreTake(semIndEntry, 100)) // Get a lock on the object after it initializes
+        {
+            taskHandleIndRun = ind->getRunTaskHandle();         //
+            queHandleIndCmdRequest = ind->getCmdRequestQueue(); //
+            xSemaphoreGive(semIndEntry);                        // Release lock
+
+            // Send out commands to any object that needs the indication handles.
+
+            ESP_LOGW(TAG, "indication created");
+        }
+    }
+    else
+        ESP_LOGW(TAG, "Memory not allocated for indication object");
+    break;
+}
+
+_________________________________________

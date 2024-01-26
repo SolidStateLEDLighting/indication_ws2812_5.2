@@ -10,6 +10,17 @@ extern SemaphoreHandle_t semIndRouteLock;
 /* Construction/Destruction */
 Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNumber)
 {
+    // Process of creating this object:
+    // 1) Copy parameters into object variables.
+    // 2) Get the system run task handle
+    // 3) Set the show flags.
+    // 4) Set log levels
+    // 5) Create all the semaphores
+    // 6) Restore all the object variables from nvs.
+    // 7) Lock the object with its entry semaphore.
+    // 8) Start this object's run task.
+    // 9) Done.
+
     majorVer = myMajorVer;       // We pass in the software version of the project so our LEDs can flash this number during startup
     minorVer = myMinorVer;       //
     patchNumber = myPatchNumber; //
@@ -35,14 +46,26 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
 
 Indication::~Indication()
 {
-    if (queHandleIndCmdRequest != nullptr)
-        vQueueDelete(queHandleIndCmdRequest);
+    // Process of destroying this object:
+    // 1) Lock the object with its entry semaphore.
+    // 2) Send a task notification to CMD_SHUT_DOWN.
+    // 3) Watch the runTaskHandle and wait for it to clean up and then become nullptr.
+    // 4) Clean up other resources created by calling task from the constructor.
+    // 5) UnLock the its entry semaphore.
+    // 6) Destroy all semaphores at the same time (for good organization). Again, these are created by calling task in constructor.
+    // 7) Done.
 
-    if (semIndEntry != NULL)
-        vSemaphoreDelete(semIndEntry);
+    // The calling task can still send taskNotifications to the indication task!
+    while (!xTaskNotify(taskHandleRun, static_cast<uint32_t>(IND_NOTIFY::CMD_SHUT_DOWN), eSetValueWithoutOverwrite))
+        vTaskDelay(pdMS_TO_TICKS(50)); // Wait for the notification to be received.
+    taskYIELD();                       // One last yeild to make sure Idle task can run.
 
-    if (this->taskHandleRun != nullptr)
-        vTaskDelete(NULL);
+    while (taskHandleRun != nullptr)
+        vTaskDelay(pdMS_TO_TICKS(50)); // Wait for the wifi task handle to become null.
+    taskYIELD();                       // One last yeild to make sure Idle task can run.
+
+    xSemaphoreGive(semIndEntry);
+    destroySemaphores();
 }
 
 /* Construction Functions */
@@ -57,6 +80,9 @@ void Indication::setShowFlags()
     // show |=  _showDebugging
     // show |=  _showProcess
     // show |=  _showPayload
+
+    showIND = 0;
+    // showIND |= _showINDShdnSteps;
 }
 
 void Indication::setLogLevels()
@@ -78,6 +104,21 @@ void Indication::createSemaphores()
     semIndRouteLock = xSemaphoreCreateBinary();
     if (semIndRouteLock != NULL)
         xSemaphoreGive(semIndRouteLock);
+}
+
+void Indication::destroySemaphores()
+{
+    if (semIndEntry != nullptr)
+    {
+        vSemaphoreDelete(semIndEntry);
+        semIndEntry = nullptr;
+    }
+
+    if (semIndRouteLock != nullptr)
+    {
+        vSemaphoreDelete(semIndRouteLock);
+        semIndRouteLock = nullptr;
+    }
 }
 
 /* Public Functions */

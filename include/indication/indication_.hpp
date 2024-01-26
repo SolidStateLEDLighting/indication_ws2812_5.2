@@ -43,17 +43,20 @@ extern "C"
         uint8_t patchNumber; // Espressif like to call this 'patch' rather than calling it 'revision'.
 
         uint8_t show = 0; // Flags
+        uint8_t showIND = 0;
 
         void setShowFlags(void); // Pre-Task Functions
         void setLogLevels(void);
         void createSemaphores(void);
+        void destroySemaphores(void);
 
         uint8_t runStackSizeK = 6; // Default/Minimum stacksize
         TaskHandle_t taskHandleRun = nullptr;
 
-        IND_OP indOP = IND_OP::Run;                // Object States
-        IND_INIT initIndStep = IND_INIT::Finished; //
-        IND_STATES indStates = IND_STATES::Idle;   //
+        IND_OP indOP = IND_OP::Run;                        // Object States
+        IND_SHUTDOWN indShdnStep = IND_SHUTDOWN::Finished; //
+        IND_INIT initIndStep = IND_INIT::Finished;         //
+        IND_STATES indStates = IND_STATES::Idle;           //
 
         /* Indication Variables */
         LED_STATE aState = LED_STATE::AUTO; // ColorA is Red.   These are default Color States
