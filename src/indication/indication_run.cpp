@@ -132,22 +132,22 @@ void Indication::run(void)
             {
                 indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5)));
 
-                if (indTaskNotifyValue > IND_NOTIFY::NONE)
+                if (indTaskNotifyValue > static_cast<IND_NOTIFY>(0))
                 {
                     // ESP_LOGW(TAG, "Task notification Colors 0x%02X  Value is %d", ((((int)indTaskNotifyValue) & 0xFFFFFF00) >> 8), (int)indTaskNotifyValue & 0x000000FF);
 
-                    if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS)
+                    if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_A_COLOR_BRIGHTNESS)
                     {
                         aSetLevel = (int)indTaskNotifyValue & 0x000000FF;
                         saveToNVSDelayCount = 8;
                     }
-                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_B_COLOR_BRIGHTNESS)
+                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_B_COLOR_BRIGHTNESS)
                     {
                         bSetLevel = (int)indTaskNotifyValue & 0x000000FF;
                         saveToNVSDelayCount = 8;
                     }
 
-                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS)
+                    else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_C_COLOR_BRIGHTNESS)
                     {
                         cSetLevel = (int)indTaskNotifyValue & 0x000000FF;
                         saveToNVSDelayCount = 8;
@@ -508,12 +508,6 @@ void Indication::run(void)
         {
             if (show & _showRun)
                 routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_OP::Idle");
-            indOP = IND_OP::Idle_Silent;
-            [[fallthrough]];
-        }
-
-        case IND_OP::Idle_Silent:
-        {
             vTaskDelay(pdMS_TO_TICKS(5000));
             break;
         }

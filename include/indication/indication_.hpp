@@ -101,7 +101,7 @@ extern "C"
         /* Indication_Run */
         bool IsIndicating = false;
 
-        IND_NOTIFY indTaskNotifyValue = IND_NOTIFY::NONE;
+        IND_NOTIFY indTaskNotifyValue = (IND_NOTIFY)0;
 
         QueueHandle_t queHandleIndCmdRequest = nullptr; // IND <-- ?? (Request Queue is here)
 

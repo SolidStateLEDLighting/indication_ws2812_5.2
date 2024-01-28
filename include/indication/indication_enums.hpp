@@ -21,11 +21,10 @@ typedef struct
 
 enum class IND_NOTIFY : uint32_t // Task Notification definitions for the Run loop
 {
-    NONE = 0,
-    SET_A_COLOR_BRIGHTNESS = 256,  // Lower byte holeds 8 bit brightness value
-    SET_B_COLOR_BRIGHTNESS = 512,  //
-    SET_C_COLOR_BRIGHTNESS = 1024, //
-    CMD_SHUT_DOWN = 4096,          // We are slipping a command into our notification schema
+    NFY_SET_A_COLOR_BRIGHTNESS = 256,  // Lower byte holeds 8 bit brightness value
+    NFY_SET_B_COLOR_BRIGHTNESS = 512,  //
+    NFY_SET_C_COLOR_BRIGHTNESS = 1024, //
+    CMD_SHUT_DOWN = 4096,              // We are slipping a command into our notification schema
 };
 
 //
@@ -64,7 +63,6 @@ enum class IND_OP : uint8_t // Primary Operations
     Init,
     Error,
     Idle,
-    Idle_Silent,
 };
 
 enum class IND_SHUTDOWN : uint8_t

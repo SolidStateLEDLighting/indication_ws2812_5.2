@@ -109,15 +109,15 @@ xQueueSendToBack(queHandleCmdRequest, &val, 30);
 **Remember, a notification command only sets the LEDs brightness level.**  
 
 int32_t brightnessLevel = 0;  
-brightnessLevel = (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // First we set the target color bit  
+brightnessLevel = (uint32_t)IND_NOTIFY::NFY_SET_A_COLOR_BRIGHTNESS; // First we set the target color bit  
 brightnessLevel |= 20;                                          // Supply the brightness value  
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
      vTaskDelay(pdMS_TO_TICKS(50));  
 
 
-brightnessSetting |= (uint32_t)IND_NOTIFY::SET_A_COLOR_BRIGHTNESS; // Red
-brightnessSetting |= (uint32_t)IND_NOTIFY::SET_C_COLOR_BRIGHTNESS; // Blue
+brightnessSetting |= (uint32_t)IND_NOTIFY::NFY_SET_A_COLOR_BRIGHTNESS; // Red
+brightnessSetting |= (uint32_t)IND_NOTIFY::NFY_SET_C_COLOR_BRIGHTNESS; // Blue
 brightnessLevel |= 50;                                             // Supply the brightness value  
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
