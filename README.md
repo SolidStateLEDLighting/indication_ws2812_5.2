@@ -44,21 +44,14 @@ Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State,
 > [!WARNING]  
 >If you use the Special Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
 
-
-
 **Color/Cycles byte 2**  
 Second byte functions only as the Second possible Color/Cycles indication.  
-
-
 
 **On_Time byte 3**  
 The values of on_time indicates how long and LED color will flash for.
 
-
-
 **Off_Time byte 4**  
  Off_time is the time between flashes.  These are shared between both possible color sequences.  NOTE:  Time between codes is always double off_time.
-
 
 ## Command Examples: 
 
@@ -103,7 +96,6 @@ int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. O
 
 xQueueSendToBack(queHandleCmdRequest, &val, 30);
 
-
 ## Notification Examples: 
 
 **Remember, a notification command only sets the LEDs brightness level.**  
@@ -115,16 +107,12 @@ brightnessLevel |= 20;                                          // Supply the br
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
      vTaskDelay(pdMS_TO_TICKS(50));  
 
-
 brightnessSetting |= (uint32_t)IND_NOTIFY::NFY_SET_A_COLOR_BRIGHTNESS; // Red
 brightnessSetting |= (uint32_t)IND_NOTIFY::NFY_SET_C_COLOR_BRIGHTNESS; // Blue
 brightnessLevel |= 50;                                             // Supply the brightness value  
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
      vTaskDelay(pdMS_TO_TICKS(50));
-
-
-
 
 ## Abstractions  
 [Indication Abstraction](./docs/ind_abstractions.md)
