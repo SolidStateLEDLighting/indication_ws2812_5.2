@@ -113,7 +113,7 @@ ___
 [Indication Abstraction](./src/indication/docs/ind_abstractions.md)
 
 ## Block Diagrams  
-[Indication Block Diagrams](./src/indication/docs/ind_sequences.md)
+[Indication Block Diagrams](./src/indication/docs/ind_blocks.md)
 
 ## Flowcharts  
 [Indication Flowcharts](./src/indication/docs/ind_flowcharts.md)
