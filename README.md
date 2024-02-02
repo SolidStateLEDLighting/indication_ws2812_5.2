@@ -108,18 +108,18 @@ brightnessLevel |= 50;                                             // Supply the
 
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
      vTaskDelay(pdMS_TO_TICKS(50));
-
+___  
 ## Abstractions  
-[Indication Abstraction](./docs/ind_abstractions.md)
+[Indication Abstraction](./src/indication/docs/ind_abstractions.md)
 
 ## Block Diagrams  
-[Indication Block Diagrams](./docs/ind_sequences.md)
+[Indication Block Diagrams](./src/indication/docs/ind_sequences.md)
 
 ## Flowcharts  
-[Indication Flowcharts](./docs/ind_flowcharts.md)
+[Indication Flowcharts](./src/indication/docs/ind_flowcharts.md)
 
 ## Sequence Diagrams  
-[Indication Sequence Diagrams](./docs/ind_sequences.md)
+[Indication Sequence Diagrams](./src/indication/docs/ind_sequences.md)
 
 ## State Transition Diagrams  
-[Indication State Models](./docs/ind_state_models.md)
+[Indication State Models](./src/indication/docs/ind_state_models.md)
