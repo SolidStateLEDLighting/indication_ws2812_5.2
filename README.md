@@ -13,21 +13,18 @@ Colors may be of a single color (Red, Green, Blue) or composed of a combination 
 2) A Command (32 bit number) can be sent to a Queue and is used to trigger the output code and speed of the blinking.  
 
 Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other as needed.
-
+___  
 ## Setting Output Intensity:  
-
 Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits) but, our hardware only make use of the lowest 3 bytes for RGB color intensities.
 
 bits  7-0  set Red   intensity
 bits 15-8  set Green intensity
 bits 23-16 set Blue  intensity
-
-
+___  
 ## Setting the Code Number(s) or Setting LED States:  
 
 **32 Bit Format:**
 MSB byte 1 \<colorA/cycles\>  byte 2 \<colorB/cycles\>  byte 3 \<time on\>  byte 4 \<time off\> LSB
-
 
 **Color/Cycles byte 1**
 This byte can either indicate the First color and cycles OR it can deliver a State Change (special command) to any of the color outputs (ON, OFF, AUTO)
@@ -52,7 +49,7 @@ The values of on_time indicates how long and LED color will flash for.
 
 **Off_Time byte 4**  
  Off_time is the time between flashes.  These are shared between both possible color sequences.  NOTE:  Time between codes is always double off_time.
-
+___  
 ## Command Examples: 
 
 >Example1: Red, 1 flash, Green, 2 flashes long on-time long off-time  
@@ -90,12 +87,10 @@ The values of on_time indicates how long and LED color will flash for.
 >0x4 -------- 1 ------ 1 --------- 3 ----- 09 ------ 12  
 >0x41130912  
 
-PLEASE CALL THE INDICATION SERVICE LIKE THIS:
-
+PLEASE CALL THE INDICATION SERVICE LIKE THIS:  
 int32_t val = 0x22420919; // Color1 is Green 2 cycles Color2 is Blue 2 cycles. Off time 09 and On time 19 (25 dec)  
-
-xQueueSendToBack(queHandleCmdRequest, &val, 30);
-
+xQueueSendToBack(queHandleCmdRequest, &val, 30);  
+___  
 ## Notification Examples: 
 
 **Remember, a notification command only sets the LEDs brightness level.**  
