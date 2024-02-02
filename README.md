@@ -1,4 +1,4 @@
-# Indication 5.2 Overview
+# Indication 5.2 Component
 The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitM and possibly DevKitC).
 
 * **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**  
