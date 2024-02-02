@@ -1,2 +1,2 @@
-# Indication State Model Diagrams
+# Indication State Transition Diagrams
 ___
