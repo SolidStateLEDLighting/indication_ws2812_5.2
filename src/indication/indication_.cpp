@@ -123,7 +123,7 @@ void Indication::destroySemaphores()
     }
 }
 
-/* Public Functions */
+/* Public Member Functions */
 TaskHandle_t &Indication::getRunTaskHandle(void)
 {
     return taskHandleRun;
