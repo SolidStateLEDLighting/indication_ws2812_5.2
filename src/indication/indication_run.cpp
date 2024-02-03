@@ -2,6 +2,7 @@
 
 #include "driver/rmt_tx.h"
 
+/* External Semaphores */
 extern SemaphoreHandle_t semIndEntry;
 
 void Indication::runMarshaller(void *arg)

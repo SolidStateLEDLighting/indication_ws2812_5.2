@@ -1,8 +1,9 @@
 #include "indication/indication_.hpp"
 
+/* Local Semaphores */
 SemaphoreHandle_t semIndEntry = NULL;
 
-/* External Variables */
+/* External Semaphores */
 extern SemaphoreHandle_t semSysEntry;
 extern SemaphoreHandle_t semNVSEntry;
 extern SemaphoreHandle_t semIndRouteLock;

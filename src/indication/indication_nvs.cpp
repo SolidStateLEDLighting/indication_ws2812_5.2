@@ -4,7 +4,7 @@
 
 #include "esp_check.h"
 
-/* External Variables */
+/* External Semaphores */
 extern SemaphoreHandle_t semNVSEntry;
 
 /* NVS Routines */
