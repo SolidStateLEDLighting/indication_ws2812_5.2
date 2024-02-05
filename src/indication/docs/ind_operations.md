@@ -6,7 +6,7 @@ We define a list of operations in indication_enum.hpp.  There are currently 5.  
 * Init Operation
 * Error Operation
 * Idle Operation
-* ![Run Task Operation Diagram](./drawings/ind_operations_block.svg)
+![Run Task Operation Diagram](./drawings/ind_operations_block.svg)
 ### Run Operation
 This Run fuction either run the LED process or watches for any RTOS communications.  Our Run process runs at full speed while the LED lighting process is active, but then drops back to a much slower 4Hz while waiting for the next Notification or Command Request to arrive.
 
