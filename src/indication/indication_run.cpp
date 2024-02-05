@@ -131,7 +131,7 @@ void Indication::run(void)
             }
             else // When we are not indicating -- we are looking for notifications or incoming commands.
             {
-                indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5)));
+                indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5))); // This is a rare commend so we don't wait here long.
 
                 if (indTaskNotifyValue > static_cast<IND_NOTIFY>(0))
                 {
@@ -164,7 +164,7 @@ void Indication::run(void)
                 }
             }
 
-            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(195)) == pdTRUE) // We can wait here most of the time for requests
+            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(240)) == pdTRUE) // We can wait here most of the time for requests
             {
                 // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
                 startIndication(value); // We have an indication value

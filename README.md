@@ -1,4 +1,8 @@
 # Indication 5.2 Component
+
+This components has been test with: 
+* **ESP-IDF-Advanced-Template-Alpha-5.2**
+
 The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitM and possibly DevKitC).
 
 * **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**  
@@ -109,17 +113,10 @@ brightnessLevel |= 50;                                             // Supply the
 while (!xTaskNotify(taskHandleIndRun, brightnessLevel, eSetValueWithoutOverwrite))  
      vTaskDelay(pdMS_TO_TICKS(50));
 ___  
-## Abstractions  
-[Indication Abstraction](./src/indication/docs/ind_abstractions.md)
-
-## Block Diagrams  
-[Indication Block Diagrams](./src/indication/docs/ind_blocks.md)
-
-## Flowcharts  
-[Indication Flowcharts](./src/indication/docs/ind_flowcharts.md)
-
-## Sequence Diagrams  
-[Indication Sequence Diagrams](./src/indication/docs/ind_sequences.md)
-
-## State Transition Diagrams  
-[Indication State Models](./src/indication/docs/ind_state_models.md)
+You may follow these links to NVS documentation:
+1) [Indication Abstraction](./src/indication/docs/ind_abstractions.md)
+2) [Indication Block Diagrams](./src/indication/docs/ind_blocks.md)
+3) [Indication Flowcharts](./src/indication/docs/ind_flowcharts.md)
+4) [Indication Operations](./src/indication/docs/ind_operations.md)
+5) [Indication Sequence Diagrams](./src/indication/docs/ind_sequences.md)
+6) [Indication State Models](./src/indication/docs/ind_state_models.md)
