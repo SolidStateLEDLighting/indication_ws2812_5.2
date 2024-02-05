@@ -1,6 +1,6 @@
 # Indication 5.2 Component
 
-This components has been test with: 
+This components has been tested with: 
 * **ESP-IDF-Advanced-Template-Alpha-5.2**
 
 The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitM and possibly DevKitC).
