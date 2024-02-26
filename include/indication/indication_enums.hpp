@@ -76,7 +76,6 @@ enum class IND_SHUTDOWN : uint8_t
 enum class IND_INIT : uint8_t
 {
     Start,
-    Init_Queues_Commands,
     CreateRMTTxChannel,
     CreateRMTEncoder,
     EnableRMTChannel,

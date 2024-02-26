@@ -28,8 +28,9 @@ void Indication::run(void)
     {
         switch (indOP)
         {
-        case IND_OP::Run: // We would like to achieve about a 5Hz entry cadence in the Run state - WHEN NOT INDICATING
+        case IND_OP::Run: // We would like to achieve about a 4Hz entry cadence in the Run state - WHEN NOT INDICATING
         {
+            // The priority is the do the indication rather than look for incoming commands.   We can only perform one indication
             if (IsIndicating)
             {
                 waitTime = 1;
@@ -164,7 +165,7 @@ void Indication::run(void)
                 }
             }
 
-            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(240)) == pdTRUE) // We can wait here most of the time for requests
+            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(250)) == pdTRUE) // We can wait here most of the time for requests
             {
                 // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
                 startIndication(value); // We have an indication value
@@ -178,8 +179,7 @@ void Indication::run(void)
             break;
         }
 
-            // Positionally, it is important for Shutdown to be serviced right after it is called.  We don't want other possible operations
-            // becoming active unexepectedly.  This is somewhat important.
+            // Positionally, it is important for Shutdown to be serviced right after it is called.  We don't want other possible operations becoming active unexepectedly.
         case IND_OP::Shutdown:
         {
             // A shutdown is a complete undoing of all items that were established or created with our run thread.
@@ -247,16 +247,6 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Start");
 
-                initIndStep = IND_INIT::Init_Queues_Commands;
-                break;
-            }
-
-            case IND_INIT::Init_Queues_Commands:
-            {
-                if (show & _showInit)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Init_Queues_Commands - Step " + std::to_string((int)IND_INIT::Init_Queues_Commands));
-
-                queHandleIndCmdRequest = xQueueCreate(3, sizeof(uint32_t)); // We can receive up to 3 indication requests and they will play out in order.
                 initIndStep = IND_INIT::CreateRMTTxChannel;
                 break;
             }

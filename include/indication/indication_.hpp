@@ -49,6 +49,9 @@ extern "C"
         void setLogLevels(void);
         void createSemaphores(void);
         void destroySemaphores(void);
+        void createQueues(void);
+        void destroyQueues(void);
+
 
         uint8_t runStackSizeK = 6; // Default/Minimum stacksize
         TaskHandle_t taskHandleRun = nullptr;

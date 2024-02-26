@@ -36,6 +36,7 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
     setShowFlags();            // Static enabling of logging statements for any area of concern during development.
     setLogLevels();            // Manually sets log levels for tasks down the call stack for development.
     createSemaphores();        // Creates any locking semaphores owned by this object.
+    createQueues();            // We use a queue to received command requests.
     restoreVariablesFromNVS(); // Brings back all our persistant data.
 
     xSemaphoreTake(semIndEntry, portMAX_DELAY); // Take the semaphore.  This gives us a locking mechanism for initialization.
@@ -67,6 +68,7 @@ Indication::~Indication()
 
     xSemaphoreGive(semIndEntry);
     destroySemaphores();
+    destroyQueues();
 }
 
 /* Construction Functions */
@@ -121,6 +123,30 @@ void Indication::destroySemaphores()
     {
         vSemaphoreDelete(semIndRouteLock);
         semIndRouteLock = nullptr;
+    }
+}
+
+void Indication::createQueues()
+{
+    esp_err_t ret = ESP_OK;
+
+    if (queHandleIndCmdRequest == nullptr)
+    {
+        queHandleIndCmdRequest = xQueueCreate(3, sizeof(uint32_t)); // Initialize the queue that holds Indication commands -- element is of size uint32_t
+        ESP_GOTO_ON_FALSE(queHandleIndCmdRequest, ESP_ERR_NO_MEM, ind_createQueues_err, TAG, "IDF did not allocate memory for the events queue.");
+    }
+    return;
+
+ind_createQueues_err:
+    routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): error: " + esp_err_to_name(ret));
+}
+
+void Indication::destroyQueues()
+{
+    if (queHandleIndCmdRequest != nullptr)
+    {
+        vQueueDelete(queHandleIndCmdRequest);
+        queHandleIndCmdRequest = nullptr;
     }
 }
 
