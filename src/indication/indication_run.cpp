@@ -1,3 +1,5 @@
+/** YOU MUST VIEW THIS PROJECT IN VS CODE TO SEE FOLDING AND THE PERFECTION OF THE DESIGN **/
+
 #include "indication/indication_.hpp"
 
 #include "driver/rmt_tx.h"
