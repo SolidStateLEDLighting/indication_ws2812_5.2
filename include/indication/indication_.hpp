@@ -32,6 +32,9 @@ extern "C"
         void printTaskInfoByColumns();
 
     private:
+        Indication(const Indication &) = delete;     // Disable copy constructor
+        void operator=(Indication const &) = delete; // Disable assignment operator
+
         char TAG[5] = "_ind";
 
         /* Object References */
@@ -51,7 +54,6 @@ extern "C"
         void destroySemaphores(void);
         void createQueues(void);
         void destroyQueues(void);
-
 
         uint8_t runStackSizeK = 6; // Default/Minimum stacksize
         TaskHandle_t taskHandleRun = nullptr;
