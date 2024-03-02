@@ -99,7 +99,8 @@ extern "C"
         void routeLogByValue(LOG_TYPE, std::string);
 
         /* Indication_NVS */
-        uint8_t saveToNVSDelayCount = 0;
+        TickType_t startNVSDelayTicks = 0;
+        TickType_t mSecNVSDelayTicks = pdMS_TO_TICKS(500);
         void restoreVariablesFromNVS(void);
         void saveVariablesToNVS(void);
 

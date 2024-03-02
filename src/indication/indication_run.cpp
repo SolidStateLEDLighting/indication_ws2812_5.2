@@ -21,10 +21,12 @@ void Indication::run(void)
     uint8_t cycles = 0;
     uint32_t value = 0;
 
-    TickType_t startTime;
+    TickType_t startDwellTime = 0;
 
-    TickType_t waitTime = 100;
-    ESP_LOGW(TAG, "waitTime is %ldmSec", pdTICKS_TO_MS(waitTime));          
+    // We want our dwell time to be about 10mSecs.  When the RTOS tick rate is 100Hz, our dwellTime ticks are only 1.
+    // If we should increase our tick rate upward, we will want to automatically calculate a new tick dwellTime.
+    TickType_t dwellTime = pdMS_TO_TICKS(10);
+    // ESP_LOGW(TAG, "dwellTime is %ldmSec with %d ticks", pdTICKS_TO_MS(dwellTime), dwellTime); // Verfication during development only
 
     resetIndication();
 
@@ -37,12 +39,8 @@ void Indication::run(void)
             // The priority is the do the indication rather than look for incoming commands.   We can only perform one indication
             if (IsIndicating)
             {
-                waitTime = 1;
-                startTime = xTaskGetTickCount();
-
-                //pdMS_TO_TICKS(150)
-
-                xTaskDelayUntil(&startTime, waitTime);
+                startDwellTime = xTaskGetTickCount();
+                xTaskDelayUntil(&startDwellTime, dwellTime);
 
                 switch (indStates)
                 {
@@ -134,8 +132,6 @@ void Indication::run(void)
                     break;
                 }
                 }
-
-                break;
             }
             else // When we are not indicating -- we are looking for notifications or incoming commands.
             {
@@ -148,18 +144,17 @@ void Indication::run(void)
                     if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_A_COLOR_BRIGHTNESS)
                     {
                         aSetLevel = (int)indTaskNotifyValue & 0x000000FF;
-                        saveToNVSDelayCount = 8;
+                        startNVSDelayTicks = xTaskGetTickCount();
                     }
                     else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_B_COLOR_BRIGHTNESS)
                     {
                         bSetLevel = (int)indTaskNotifyValue & 0x000000FF;
-                        saveToNVSDelayCount = 8;
+                        startNVSDelayTicks = xTaskGetTickCount();
                     }
-
                     else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::NFY_SET_C_COLOR_BRIGHTNESS)
                     {
                         cSetLevel = (int)indTaskNotifyValue & 0x000000FF;
-                        saveToNVSDelayCount = 8;
+                        startNVSDelayTicks = xTaskGetTickCount();
                     }
                     else if ((int)indTaskNotifyValue & (int)IND_NOTIFY::CMD_SHUT_DOWN)
                     {
@@ -170,18 +165,22 @@ void Indication::run(void)
                     else
                         routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unhandled TaskNotification");
                 }
+                else if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(250)) == pdTRUE) // We can wait here most of the time for requests
+                {
+                    // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
+                    startIndication(value); // We have an indication value
+                }
             }
 
-            if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(250)) == pdTRUE) // We can wait here most of the time for requests
-            {
-                // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
-                startIndication(value); // We have an indication value
-            }
+            // Even if we are indicating, we may want to perhform some background work.  We can do that here.
 
-            if (saveToNVSDelayCount > 0) // Counts of 4 equal about 1 second.
+            if (startNVSDelayTicks > 0) // If we in the process of counting time (ticks)
             {
-                if (--saveToNVSDelayCount < 1)
+                if (xTaskGetTickCount() > (startNVSDelayTicks + mSecNVSDelayTicks))
+                {
                     saveVariablesToNVS();
+                    startNVSDelayTicks = 0; // Stop the count for NVS storage
+                }
             }
             break;
         }
@@ -516,8 +515,6 @@ void Indication::run(void)
 
 void Indication::startIndication(uint32_t value)
 {
-    bool _saveStatesToNVS = false;
-
     first_color_target = (0xF0000000 & value) >> 28; // First Color(s) -- We may see any of the color bits set
     first_color_cycles = (0x0F000000 & value) >> 24; // First Color Cycles
 
@@ -547,7 +544,7 @@ void Indication::startIndication(uint32_t value)
             if (aState != LED_STATE::OFF)
             {
                 aState = LED_STATE::OFF;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -556,7 +553,7 @@ void Indication::startIndication(uint32_t value)
             if (bState != LED_STATE::OFF)
             {
                 bState = LED_STATE::OFF;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -565,12 +562,12 @@ void Indication::startIndication(uint32_t value)
             if (cState != LED_STATE::OFF)
             {
                 cState = LED_STATE::OFF;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
         // We may need to turn LEDs off, but never turn them on here.
-        clearLEDTargets = (uint8_t)(first_color_target & COLORA_Bit) | (uint8_t)(first_color_target & COLORB_Bit) | (uint8_t)(first_color_target & COLORC_Bit);
+        clearLEDTargets = ((uint8_t)(first_color_target & COLORA_Bit) | (uint8_t)(first_color_target & COLORB_Bit) | (uint8_t)(first_color_target & COLORC_Bit));
         setAndClearColors(0, clearLEDTargets);
     }
     else if (first_color_cycles == 0xE) // Cycles value is E -> Turn Colors to AUTO State and exit routine
@@ -582,7 +579,7 @@ void Indication::startIndication(uint32_t value)
             if (aState != LED_STATE::AUTO)
             {
                 aState = LED_STATE::AUTO;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -591,7 +588,7 @@ void Indication::startIndication(uint32_t value)
             if (bState != LED_STATE::AUTO)
             {
                 bState = LED_STATE::AUTO;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -600,7 +597,7 @@ void Indication::startIndication(uint32_t value)
             if (cState != LED_STATE::AUTO)
             {
                 cState = LED_STATE::AUTO;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
         // Since all LEDs are going into AUTO mode, no colors changes are required.  Any LED is allowed to be either in an on/off state.
@@ -614,7 +611,7 @@ void Indication::startIndication(uint32_t value)
             if (aState != LED_STATE::ON)
             {
                 aState = LED_STATE::ON;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -623,7 +620,7 @@ void Indication::startIndication(uint32_t value)
             if (bState != LED_STATE::ON)
             {
                 bState = LED_STATE::ON;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -632,7 +629,7 @@ void Indication::startIndication(uint32_t value)
             if (cState != LED_STATE::ON)
             {
                 cState = LED_STATE::ON;
-                _saveStatesToNVS = true;
+                startNVSDelayTicks = xTaskGetTickCount();
             }
         }
 
@@ -647,9 +644,6 @@ void Indication::startIndication(uint32_t value)
         indStates = IND_STATES::Show_FirstColor;
         IsIndicating = true;
     }
-
-    if (_saveStatesToNVS)
-        saveToNVSDelayCount = 8;
 }
 
 void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)
