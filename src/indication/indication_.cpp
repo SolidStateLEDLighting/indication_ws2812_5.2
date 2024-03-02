@@ -43,6 +43,8 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
 
     initIndStep = IND_INIT::Start; // Allow the object to initialize and then run.
     indOP = IND_OP::Init;
+
+    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizek: " + std::to_string(runStackSizeK));
     xTaskCreate(runMarshaller, "ind_run", 1024 * runStackSizeK, this, TASK_PRIORITY_LOW, &taskHandleRun); // Low number indicates low priority task
 }
 

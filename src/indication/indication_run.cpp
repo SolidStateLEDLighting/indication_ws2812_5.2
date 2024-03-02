@@ -22,7 +22,9 @@ void Indication::run(void)
     uint32_t value = 0;
 
     TickType_t startTime;
+
     TickType_t waitTime = 100;
+    ESP_LOGW(TAG, "waitTime is %ldmSec", pdTICKS_TO_MS(waitTime));          
 
     resetIndication();
 
@@ -37,7 +39,10 @@ void Indication::run(void)
             {
                 waitTime = 1;
                 startTime = xTaskGetTickCount();
-                vTaskDelayUntil(&startTime, waitTime);
+
+                //pdMS_TO_TICKS(150)
+
+                xTaskDelayUntil(&startTime, waitTime);
 
                 switch (indStates)
                 {
