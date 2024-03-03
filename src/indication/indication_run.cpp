@@ -34,10 +34,9 @@ void Indication::run(void)
     {
         switch (indOP)
         {
-        case IND_OP::Run: // We would like to achieve about a 4Hz entry cadence in the Run state - WHEN NOT INDICATING
+        case IND_OP::Run: // When NOT indicating, we would like to achieve about a 4Hz entry cadence in the Run state.
         {
-            // The priority is the do the indication rather than look for incoming commands.   We can only perform one indication
-            if (IsIndicating)
+            if (IsIndicating) // The priority is the do the indication.  We can only perform one indication at a time.
             {
                 startDwellTime = xTaskGetTickCount();
                 xTaskDelayUntil(&startDwellTime, dwellTime);
@@ -123,7 +122,7 @@ void Indication::run(void)
             }
             else // When we are not indicating -- we are looking for notifications or incoming commands.
             {
-                indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5))); // This is a rare commend so we don't wait here long.
+                indTaskNotifyValue = static_cast<IND_NOTIFY>(ulTaskNotifyTake(pdTRUE, 0)); // This is a rare command so we don't wait here.
 
                 if (indTaskNotifyValue > static_cast<IND_NOTIFY>(0))
                 {
@@ -153,7 +152,7 @@ void Indication::run(void)
                     else
                         routeLogByValue(LOG_TYPE::ERROR, std::string(__func__) + "(): Error, Unhandled TaskNotification");
                 }
-                else if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(250)) == pdTRUE) // We can wait here most of the time for requests
+                else if (xQueueReceive(queHandleIndCmdRequest, (void *)&value, pdMS_TO_TICKS(245)) == pdTRUE) // We can wait here most of the time for requests
                 {
                     // ESP_LOGW(TAG, "Received notification value of %08X", (int)value);
                     startIndication(value); // We have an indication value
