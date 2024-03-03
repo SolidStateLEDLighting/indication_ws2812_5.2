@@ -54,7 +54,7 @@ void Indication::run(void)
                     if ((first_on_time_counter > 0) && (--first_on_time_counter < 1)) // First color on-time just expired
                     {
                         setAndClearColors(0, first_color_target); // Turn off the first color
-                        indState = IND_STATES::Set_FirstColor;   // Assume that a first color has another cycle by default
+                        indState = IND_STATES::Set_FirstColor;    // Assume that a first color has another cycle by default
 
                         if (first_color_cycles < 1)
                         {
@@ -77,7 +77,7 @@ void Indication::run(void)
                     if ((second_on_time_counter > 0) && (--second_on_time_counter < 1)) // Second color on-time just expired
                     {
                         setAndClearColors(0, second_color_target); // Turn off the second color
-                        indState = IND_STATES::Set_SecondColor;   // Assume that a second color has another cycle by default
+                        indState = IND_STATES::Set_SecondColor;    // Assume that a second color has another cycle by default
 
                         if (second_color_cycles < 1)         // If we are finished with the second color -- add extra delay time
                             off_time_counter = 3 * off_time; // If we are finish then add extra delay time between this code and one that might come next.
@@ -174,11 +174,11 @@ void Indication::run(void)
             break;
         }
 
-            // Positionally, it is important for Shutdown to be serviced right after it is called.  We don't want other possible operations becoming active unexepectedly.
         case IND_OP::Shutdown:
         {
+            // Positionally, it is important for Shutdown to be serviced right after it is called.  We don't want other possible operations becoming active unexepectedly.
             // A shutdown is a complete undoing of all items that were established or created with our run thread.
-            // If we are connected then disconnect.  If we created resources, we must dispose of them here.
+            // If we are connected then disconnect.  If we created resources (after construction), we must dispose of them here.
             switch (indShdnStep)
             {
             case IND_SHUTDOWN::Start:
@@ -212,12 +212,7 @@ void Indication::run(void)
                 if (showIND & _showINDShdnSteps)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Final_Items - Step " + std::to_string((int)IND_SHUTDOWN::Final_Items));
 
-                /* Delete Command Queue */
-                if (queHandleIndCmdRequest != nullptr)
-                {
-                    vQueueDelete(queHandleIndCmdRequest);
-                    queHandleIndCmdRequest = nullptr;
-                }
+                // No other resouces were allocated after the construction.
 
                 indShdnStep = IND_SHUTDOWN::Finished;
                 break;
