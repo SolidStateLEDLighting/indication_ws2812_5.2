@@ -61,7 +61,7 @@ extern "C"
         IND_OP indOP = IND_OP::Run;                        // Object States
         IND_SHUTDOWN indShdnStep = IND_SHUTDOWN::Finished; //
         IND_INIT initIndStep = IND_INIT::Finished;         //
-        IND_STATES indStates = IND_STATES::Idle;           //
+        IND_STATES indState = IND_STATES::Idle;           //
 
         /* Indication Variables */
         LED_STATE aState = LED_STATE::AUTO; // ColorA is Red.   These are default Color States

@@ -93,9 +93,9 @@ enum class IND_INIT : uint8_t
 enum class IND_STATES : uint8_t
 {
     Idle,
-    Show_FirstColor,
-    FirstColor_Dark,
-    Show_SecondColor,
-    SecondColor_Dark,
+    Clear_FirstColor,
+    Set_FirstColor,
+    Clear_SecondColor,
+    Set_SecondColor,
     Final,
 };

@@ -42,87 +42,75 @@ void Indication::run(void)
                 startDwellTime = xTaskGetTickCount();
                 xTaskDelayUntil(&startDwellTime, dwellTime);
 
-                switch (indStates)
+                switch (indState)
                 {
                 case IND_STATES::Idle:
                 {
                     break;
                 }
 
-                case IND_STATES::Show_FirstColor:
+                case IND_STATES::Clear_FirstColor:
                 {
-                    if (first_on_time_counter > 0)
+                    if ((first_on_time_counter > 0) && (--first_on_time_counter < 1)) // First color on-time just expired
                     {
-                        if (--first_on_time_counter < 1)
-                        {
-                            setAndClearColors(0, first_color_target);
-                            indStates = IND_STATES::FirstColor_Dark;
+                        setAndClearColors(0, first_color_target); // Turn off the first color
+                        indState = IND_STATES::Set_FirstColor;   // Assume that a first color has another cycle by default
 
-                            if (first_color_cycles == 0)
-                            {
-                                off_time_counter = (off_time * 2);
-                                indStates = IND_STATES::SecondColor_Dark;
-                            }
+                        if (first_color_cycles < 1)
+                        {
+                            if (second_color_target < 1)
+                                off_time_counter = 3 * off_time; // IF we are finished with the first color AND we don't have a second color THEN add extra off delay time.
                             else
                             {
-                                if ((first_color_cycles < 1) && (second_color_target == 0))
-                                    off_time_counter = 3 * off_time; // If we are finished with the first color and we don't have a second color add extra delay time.
-                                else
-                                    off_time_counter = off_time;
+                                off_time_counter = 2 * off_time; // Moving to second color off delay time.
+                                indState = IND_STATES::Set_SecondColor;
                             }
                         }
+                        else
+                            off_time_counter = off_time; // Normal off delay time between color one cycles
                     }
                     break;
                 }
 
-                case IND_STATES::Show_SecondColor:
+                case IND_STATES::Clear_SecondColor:
                 {
-                    if (second_on_time_counter > 0)
+                    if ((second_on_time_counter > 0) && (--second_on_time_counter < 1)) // Second color on-time just expired
                     {
-                        if (--second_on_time_counter < 1)
-                        {
-                            setAndClearColors(0, second_color_target);
-                            indStates = IND_STATES::SecondColor_Dark;
+                        setAndClearColors(0, second_color_target); // Turn off the second color
+                        indState = IND_STATES::Set_SecondColor;   // Assume that a second color has another cycle by default
 
-                            if (second_color_cycles < 1) // If we are finished with the second color -- add extra delay time
-                                off_time_counter = 3 * off_time;
-                            else
-                                off_time_counter = off_time;
-                        }
+                        if (second_color_cycles < 1)         // If we are finished with the second color -- add extra delay time
+                            off_time_counter = 3 * off_time; // If we are finish then add extra delay time between this code and one that might come next.
+                        else
+                            off_time_counter = off_time; // Normal off-time.
                     }
                     break;
                 }
 
-                case IND_STATES::FirstColor_Dark:
-                case IND_STATES::SecondColor_Dark:
+                case IND_STATES::Set_FirstColor:
+                case IND_STATES::Set_SecondColor:
                 {
-                    if (off_time_counter > 0)
+                    if ((off_time_counter > 0) && (--off_time_counter < 1))
                     {
-                        if (--off_time_counter < 1)
+                        if ((first_color_cycles > 0) && (indState == IND_STATES::Set_FirstColor))
                         {
-                            if (first_color_cycles > 0)
-                            {
-                                first_color_cycles--;
-                                setAndClearColors(first_color_target, 0); // Turn on the LED
-
-                                first_on_time_counter = on_time;
-                                indStates = IND_STATES::Show_FirstColor;
-                            }
-                            else if ((second_color_cycles > 0) && (indStates == IND_STATES::SecondColor_Dark))
-                            {
-                                second_color_cycles--;
-                                setAndClearColors(second_color_target, 0); // Turn on the LED
-
-                                second_on_time_counter = on_time;
-                                indStates = IND_STATES::Show_SecondColor;
-                            }
-                            else
-                            {
-                                indStates = IND_STATES::Final;
-                            }
+                            first_color_cycles--;
+                            setAndClearColors(first_color_target, 0); // Turn on the LED
+                            first_on_time_counter = on_time;
+                            indState = IND_STATES::Clear_FirstColor;
+                        }
+                        else if ((second_color_cycles > 0) && (indState == IND_STATES::Set_SecondColor))
+                        {
+                            second_color_cycles--;
+                            setAndClearColors(second_color_target, 0); // Turn on the LED
+                            second_on_time_counter = on_time;
+                            indState = IND_STATES::Clear_SecondColor;
+                        }
+                        else
+                        {
+                            indState = IND_STATES::Final;
                         }
                     }
-
                     break;
                 }
 
@@ -179,6 +167,7 @@ void Indication::run(void)
                 if (xTaskGetTickCount() > (startNVSDelayTicks + mSecNVSDelayTicks))
                 {
                     saveVariablesToNVS();
+                    routeLogByValue(LOG_TYPE::WARN, std::string(__func__) + "(): saveVariablesToNVS()");
                     startNVSDelayTicks = 0; // Stop the count for NVS storage
                 }
             }
@@ -527,15 +516,20 @@ void Indication::startIndication(uint32_t value)
     first_on_time_counter = on_time;
     second_on_time_counter = on_time;
 
-    // ESP_LOGW(TAG, "First Color 0x%X Cycles 0x%X", first_color_target, first_color_cycles);
+    // ESP_LOGW(TAG, "First  Color 0x%X Cycles 0x%X", first_color_target, first_color_cycles);
     // ESP_LOGW(TAG, "Second Color 0x%X Cycles 0x%0X", second_color_target, second_color_cycles);
-    // ESP_LOGW(TAG, "Color Time 0x%02X", on_time);
-    // ESP_LOGW(TAG, "Dark Time 0x%02X", off_time);
+    // ESP_LOGW(TAG, "On  Time 0x%02X", on_time);
+    // ESP_LOGW(TAG, "Off Time 0x%02X", off_time);
 
     //
-    // Manually turning ON and OFF or AUTO -- the led LEDs happens always in the First Color byte
+    // We first look for control values in the first Fist Color byte -- stored in first_color_cycles.
+    // ANY VALUE OF 0, E, and F are control values.
     //
-    if (first_color_cycles == 0x0) // Cycles value is 0 -> Turn Colors Off and exit routine
+    // Value of 0 Manually sets OFF  to any LEDs designated in first_color_target.
+    // Value of E Manually sets AUTO to any LEDs designated in first_color_target.
+    // Value of F Manually sets ON   to any LEDs designated in first_color_target.
+    //
+    if (first_color_cycles == 0x0) // Cycles value is 0 -> Turn Colors Off and returns without further processing
     {
         // ESP_LOGW(TAG, "first_color_cycles = 0x0");
 
@@ -543,6 +537,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (aState != LED_STATE::OFF)
             {
+                ESP_LOGW(TAG, "Setting  aState = LED_STATE::OFF");
                 aState = LED_STATE::OFF;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -552,6 +547,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (bState != LED_STATE::OFF)
             {
+                ESP_LOGW(TAG, "Setting  bState = LED_STATE::OFF");
                 bState = LED_STATE::OFF;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -561,6 +557,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (cState != LED_STATE::OFF)
             {
+                ESP_LOGW(TAG, "Setting  cState = LED_STATE::OFF");
                 cState = LED_STATE::OFF;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -570,7 +567,7 @@ void Indication::startIndication(uint32_t value)
         clearLEDTargets = ((uint8_t)(first_color_target & COLORA_Bit) | (uint8_t)(first_color_target & COLORB_Bit) | (uint8_t)(first_color_target & COLORC_Bit));
         setAndClearColors(0, clearLEDTargets);
     }
-    else if (first_color_cycles == 0xE) // Cycles value is E -> Turn Colors to AUTO State and exit routine
+    else if (first_color_cycles == 0xE) // Cycles value is E -> Turn Colors to AUTO State and returns without further processing
     {
         // ESP_LOGW(TAG, "first_color_cycles == 0xE");
 
@@ -578,6 +575,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (aState != LED_STATE::AUTO)
             {
+                ESP_LOGW(TAG, "Setting  aState = LED_STATE::AUTO");
                 aState = LED_STATE::AUTO;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -587,6 +585,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (bState != LED_STATE::AUTO)
             {
+                ESP_LOGW(TAG, "Setting  bState = LED_STATE::AUTO");
                 bState = LED_STATE::AUTO;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -596,6 +595,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (cState != LED_STATE::AUTO)
             {
+                ESP_LOGW(TAG, "Setting  cState = LED_STATE::AUTO");
                 cState = LED_STATE::AUTO;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -610,6 +610,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (aState != LED_STATE::ON)
             {
+                ESP_LOGW(TAG, "Setting  aState = LED_STATE::ON");
                 aState = LED_STATE::ON;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -619,6 +620,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (bState != LED_STATE::ON)
             {
+                ESP_LOGW(TAG, "Setting  bState = LED_STATE::ON");
                 bState = LED_STATE::ON;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -628,6 +630,7 @@ void Indication::startIndication(uint32_t value)
         {
             if (cState != LED_STATE::ON)
             {
+                ESP_LOGW(TAG, "Setting  cState = LED_STATE::ON");
                 cState = LED_STATE::ON;
                 startNVSDelayTicks = xTaskGetTickCount();
             }
@@ -641,7 +644,7 @@ void Indication::startIndication(uint32_t value)
     {
         setAndClearColors(first_color_target, 0); // Process normal color display
         first_color_cycles--;
-        indStates = IND_STATES::Show_FirstColor;
+        indState = IND_STATES::Clear_FirstColor;
         IsIndicating = true;
     }
 }
@@ -744,6 +747,6 @@ void Indication::resetIndication()
     on_time = 0;
     on_time_counter = 0;
 
-    indStates = IND_STATES::Idle;
+    indState = IND_STATES::Idle;
     IsIndicating = false;
 }
