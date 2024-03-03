@@ -159,7 +159,7 @@ void Indication::run(void)
                 }
             }
 
-            // Even if we are indicating, we may want to perhform some background work.  We can do that here.
+            // Even if we are indicating, we may want to perform some background work.  We can do that here.
 
             if (startNVSDelayTicks > 0) // If we in the process of counting time (ticks)
             {
@@ -186,7 +186,7 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Start");
 
                 indShdnStep = IND_SHUTDOWN::DisableAndDeleteRMTChannel;
-                break;
+                [[fallthrough]];
             }
 
             case IND_SHUTDOWN::DisableAndDeleteRMTChannel:
@@ -237,7 +237,7 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Start");
 
                 initIndStep = IND_INIT::CreateRMTTxChannel;
-                break;
+                [[fallthrough]];
             }
 
             case IND_INIT::CreateRMTTxChannel:
@@ -302,7 +302,6 @@ void Indication::run(void)
                 ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_enableRMTChannel_err, TAG, "rmt_transmit() failed");
                 ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_enableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
 
-                cycles = majorVer;
                 initIndStep = IND_INIT::Set_LED_Initial_States;
                 break;
 
@@ -324,7 +323,7 @@ void Indication::run(void)
 
                 if (bState == LED_STATE::ON)
                     setAndClearColors(COLORB_Bit, 0);
-                else if (aState == LED_STATE::OFF)
+                else if (bState == LED_STATE::OFF)
                     setAndClearColors(0, COLORB_Bit);
 
                 if (cState == LED_STATE::ON)
@@ -350,7 +349,10 @@ void Indication::run(void)
                 else if ((aState == LED_STATE::OFF) && (bState == LED_STATE::OFF) && (cState == LED_STATE::OFF))
                     initIndStep = IND_INIT::Finished;
                 else
+                {
+                    cycles = majorVer;
                     initIndStep = IND_INIT::ColorA_On;
+                }
                 break;
             }
 
@@ -360,7 +362,6 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorA_On - Step " + std::to_string((int)IND_INIT::ColorA_On));
 
                 setAndClearColors((uint8_t)COLORA_Bit, 0);
-
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorA_Off;
                 break;
@@ -372,16 +373,10 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorA_Off - Step " + std::to_string((int)IND_INIT::ColorA_Off));
 
                 setAndClearColors(0, (uint8_t)COLORA_Bit);
-
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (cycles > 0)
-                    cycles--;
-
-                if (cycles > 0)
-                {
+                if (--cycles > 0)
                     initIndStep = IND_INIT::ColorA_On;
-                }
                 else
                 {
                     cycles = minorVer;
@@ -397,7 +392,6 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorB_On - Step " + std::to_string((int)IND_INIT::ColorB_On));
 
                 setAndClearColors((uint8_t)COLORB_Bit, 0);
-
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorB_Off;
                 break;
@@ -409,13 +403,9 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorB_Off - Step " + std::to_string((int)IND_INIT::ColorB_Off));
 
                 setAndClearColors(0, (uint8_t)COLORB_Bit);
-
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (cycles > 0)
-                    cycles--;
-
-                if (cycles > 0)
+                if (--cycles > 0)
                 {
                     initIndStep = IND_INIT::ColorB_On;
                 }
@@ -434,7 +424,6 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorC_On - Step " + std::to_string((int)IND_INIT::ColorC_On));
 
                 setAndClearColors((uint8_t)COLORC_Bit, 0);
-
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorC_Off;
                 break;
@@ -446,13 +435,9 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorC_Off - Step " + std::to_string((int)IND_INIT::ColorC_Off));
 
                 setAndClearColors(0, (uint8_t)COLORC_Bit);
-
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (cycles > 0)
-                    cycles--;
-
-                if (cycles > 0)
+                if (--cycles > 0)
                 {
                     initIndStep = IND_INIT::ColorC_On;
                 }
@@ -470,7 +455,7 @@ void Indication::run(void)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Finished");
 
                 indOP = IND_OP::Run;
-                // xSemaphoreGive(semIndEntry); // Yield now if not done earlier inside Early_Release
+                xSemaphoreGive(semIndEntry); // Yield now if not done earlier inside Early_Release
                 break;
             }
             }
