@@ -406,9 +406,7 @@ void Indication::run(void)
                 vTaskDelay(pdMS_TO_TICKS(150));
 
                 if (--cycles > 0)
-                {
                     initIndStep = IND_INIT::ColorB_On;
-                }
                 else
                 {
                     cycles = patchNumber;
@@ -438,9 +436,7 @@ void Indication::run(void)
                 vTaskDelay(pdMS_TO_TICKS(150));
 
                 if (--cycles > 0)
-                {
                     initIndStep = IND_INIT::ColorC_On;
-                }
                 else
                 {
                     initIndStep = IND_INIT::Finished;
