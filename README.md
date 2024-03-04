@@ -7,7 +7,7 @@ None at this time.
 
 The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitM and possibly DevKitC).
 
-* **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 cycles)**  
+* **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 blinks)**  
 * **We can set the intensity of these colors**  
 * **We can adjust the on and off time which effectively controls the speed of the blinking**  
 
@@ -18,7 +18,7 @@ Colors may be of a single color (Red, Green, Blue) or composed of a combination 
 1) Task Notification (32 bit number) is used to set the color output intensity.  
 2) A Command (32 bit number) can be sent to a Queue and is used to trigger the output code and speed of the blinking.  
 
-Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other as needed.
+Typically, the user would set the intensity to an appropriate level for the hardware and then use commands to trigger output codes.  The Queue depth is typically set to 3 and output codes will follow each other in order.
 ___  
 ## Setting Output Intensity:  
 Intensity is held by an 8 bit values.  We have the ability to easily send four 8 bit values in a task notification (32 bits) but, our hardware only make use of the lowest 3 bytes for RGB color intensities.
