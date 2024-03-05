@@ -45,7 +45,7 @@ Special Command Codes can alternatively occupy the Cycles byte: 0x00 = ON State,
 >Special Command codes do apply to the states of all LEDs in a combination color.  
 
 > [!WARNING]  
->If you use the Special Command Codes of 0x00 (ON State) or 0x0F (OFF State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
+>If you use the Special Command Codes of 0x00 (OFF State) or 0x0F (ON State), you will need to call the Special Command of 0x0E (AUTO State) to return to normal blinking activity.  
 
 **Color/Cycles byte 2**  
 Second byte functions only as the Second possible Color/Cycles indication.  
@@ -71,19 +71,19 @@ ___
 >Example3: Turn Red On continously  **(state change)**
 >Red Color - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x1 -------- F ------- 0 --------- 0 ----- 00 ------ 00  
->0x10000000 
+>0x1F000000 
 
 >Example4: All Colors On continously  **(state change)**
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- F ------ 0 --------- 0 ----- 00 ------ 00  
->0x70000000 
+>0x7F000000 
 
 >Example5: All Colors OFF completely  **(state change)**
 >All Colors - Cycles - NoColor - Cycles - On-Time - Off-Time  
 >0x7 -------- 0 ------ 0 --------- 0 ----- 00 ------ 00  
->0x7F000000  
+>0x70000000  
 
->Example6: Return All Colors to normal operation  **(state change)**
+>Example6: Return All Colors to normal AUTO operation  **(state change)**
 >All Colors - Cycles - NoColor - Cycles On-Time - Off-Time  
 >0x7 -------- E ------ 0 --------- 0 ----- 00 ------ 00  
 >0x7E000000  
