@@ -5,7 +5,7 @@ This components has been tested with: **ESP-IDF-Advanced-Template-Alpha-5.2**
 **Expected changes to arrive:**   
 None at this time.
 
-The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitM and possibly DevKitC).
+The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitC).
 
 * **We can make the LED flash to represent 1 or 2 numbers with "blinks" of color (up to 13 blinks)**  
 * **We can set the intensity of these colors**  
