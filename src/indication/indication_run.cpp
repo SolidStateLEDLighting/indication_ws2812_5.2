@@ -351,7 +351,11 @@ void Indication::run(void)
                 else
                 {
                     cycles = majorVer;
-                    initIndStep = IND_INIT::ColorA_On;
+
+                    if (cycles > 0)
+                        initIndStep = IND_INIT::ColorA_On;
+                    else
+                        initIndStep = IND_INIT::ColorA_Off;
                 }
                 break;
             }
@@ -361,6 +365,7 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorA_On - Step " + std::to_string((int)IND_INIT::ColorA_On));
 
+                cycles--;
                 setAndClearColors((uint8_t)COLORA_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorA_Off;
@@ -375,13 +380,18 @@ void Indication::run(void)
                 setAndClearColors(0, (uint8_t)COLORA_Bit);
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (--cycles > 0)
+                if (cycles > 0)
                     initIndStep = IND_INIT::ColorA_On;
                 else
                 {
                     cycles = minorVer;
-                    initIndStep = IND_INIT::ColorB_On;
-                    vTaskDelay(pdMS_TO_TICKS(250));
+
+                    if (cycles > 0)
+                        initIndStep = IND_INIT::ColorB_On;
+                    else
+                        initIndStep = IND_INIT::ColorB_Off;
+
+                    vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
                 break;
             }
@@ -391,6 +401,7 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorB_On - Step " + std::to_string((int)IND_INIT::ColorB_On));
 
+                cycles--;
                 setAndClearColors((uint8_t)COLORB_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorB_Off;
@@ -405,13 +416,18 @@ void Indication::run(void)
                 setAndClearColors(0, (uint8_t)COLORB_Bit);
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (--cycles > 0)
+                if (cycles > 0) //
                     initIndStep = IND_INIT::ColorB_On;
                 else
                 {
                     cycles = patchNumber;
-                    initIndStep = IND_INIT::ColorC_On;
-                    vTaskDelay(pdMS_TO_TICKS(250));
+
+                    if (cycles > 0)
+                        initIndStep = IND_INIT::ColorC_On;
+                    else
+                        initIndStep = IND_INIT::ColorC_Off;
+
+                    vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
                 break;
             }
@@ -421,6 +437,7 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::ColorC_On - Step " + std::to_string((int)IND_INIT::ColorC_On));
 
+                cycles--;
                 setAndClearColors((uint8_t)COLORC_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 initIndStep = IND_INIT::ColorC_Off;
@@ -435,12 +452,12 @@ void Indication::run(void)
                 setAndClearColors(0, (uint8_t)COLORC_Bit);
                 vTaskDelay(pdMS_TO_TICKS(150));
 
-                if (--cycles > 0)
+                if (cycles > 0)
                     initIndStep = IND_INIT::ColorC_On;
                 else
                 {
                     initIndStep = IND_INIT::Finished;
-                    vTaskDelay(pdMS_TO_TICKS(250));
+                    vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
                 break;
             }
