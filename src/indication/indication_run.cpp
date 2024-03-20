@@ -115,7 +115,14 @@ void Indication::run(void)
 
                 case IND_STATES::Final:
                 {
+                    if (rmtEstablished)
+                        ESP_GOTO_ON_ERROR(demolishRMTDriver(), ind_final_err, TAG, "demolishRMTDriver() failed");
                     resetIndication(); // Resetting all the indicator variables
+                    break;
+
+                ind_final_err:
+                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                    indOP = IND_OP::Error;
                     break;
                 }
                 }
@@ -185,8 +192,11 @@ void Indication::run(void)
                 if (showIND & _showINDShdnSteps)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Start");
 
-                indShdnStep = IND_SHUTDOWN::DisableAndDeleteRMTChannel;
-                [[fallthrough]];
+                if (rmtEstablished)
+                    indShdnStep = IND_SHUTDOWN::DisableAndDeleteRMTChannel;
+                else
+                    indShdnStep = IND_SHUTDOWN::Final_Items;
+                break;
             }
 
             case IND_SHUTDOWN::DisableAndDeleteRMTChannel:
@@ -194,9 +204,8 @@ void Indication::run(void)
                 if (showIND & _showINDShdnSteps)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::DisableAndDeleteRMTChannel - Step " + std::to_string((int)IND_SHUTDOWN::DisableAndDeleteRMTChannel));
 
-                ESP_GOTO_ON_ERROR(rmt_disable(led_chan), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_disable() failed");
-                ESP_GOTO_ON_ERROR(rmt_del_encoder(led_encoder), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_del_encoder() failed");
-                ESP_GOTO_ON_ERROR(rmt_del_channel(led_chan), ind_disableAndDeleteRMTChannel_err, TAG, "rmt_del_channel() failed");
+                if (rmtEstablished)
+                    ESP_GOTO_ON_ERROR(demolishRMTDriver(), ind_disableAndDeleteRMTChannel_err, TAG, "demolishRMTDriver() failed");
                 indShdnStep = IND_SHUTDOWN::Final_Items;
                 break;
 
@@ -210,8 +219,6 @@ void Indication::run(void)
             {
                 if (showIND & _showINDShdnSteps)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_SHUTDOWN::Final_Items - Step " + std::to_string((int)IND_SHUTDOWN::Final_Items));
-
-                // No other resouces were allocated after the construction.
 
                 indShdnStep = IND_SHUTDOWN::Finished;
                 break;
@@ -236,80 +243,96 @@ void Indication::run(void)
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Start");
 
-                initIndStep = IND_INIT::CreateRMTTxChannel;
+                initIndStep = IND_INIT::StartRMTDriver;
                 [[fallthrough]];
             }
 
-            case IND_INIT::CreateRMTTxChannel:
+            case IND_INIT::StartRMTDriver:
             {
                 if (show & _showInit)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTTxChannel - Step " + std::to_string((int)IND_INIT::CreateRMTTxChannel));
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::StartRMTDriver - Step " + std::to_string((int)IND_INIT::StartRMTDriver));
 
-                // ESP_LOGW(TAG, "RMT_LED_STRIP_GPIO_NUM %d", RMT_LED_STRIP_GPIO_NUM);
-                // ESP_LOGW(TAG, "RMT_CLK_SRC_DEFAULT %d", RMT_CLK_SRC_DEFAULT);
-                // ESP_LOGW(TAG, "RMT_LED_STRIP_RESOLUTION_HZ %d", RMT_LED_STRIP_RESOLUTION_HZ);
-
-                rmt_tx_channel_config_t tx_chan_config = {
-                    (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
-                    RMT_CLK_SRC_DEFAULT,                // selects source clock
-                    RMT_LED_STRIP_RESOLUTION_HZ,        //
-                    64,                                 // Increasing the block size can make the LED less flickering
-                    4,                                  // Set the number of transactions that can be pending in the background
-                    0,                                  // Interrupt Priority
-                    {0, 1, 1, 0},                       // invert_out, with_dma, io_loop_back, io_od_mode
-                };
-
-                ESP_GOTO_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), ind_createRMTTxChannel_err, TAG, "rmt_new_tx_channel() failed");
-                initIndStep = IND_INIT::CreateRMTEncoder;
-                break;
-
-            ind_createRMTTxChannel_err:
-                errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
-                indOP = IND_OP::Error;
-                break;
-            }
-
-            case IND_INIT::CreateRMTEncoder:
-            {
-                if (show & _showInit)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTEncoder - Step " + std::to_string((int)IND_INIT::CreateRMTEncoder));
-
-                led_strip_encoder_config_t encoder_config = {
-                    RMT_LED_STRIP_RESOLUTION_HZ,
-                };
-
-                ESP_GOTO_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), ind_createRMTEncoder_err, TAG, "rmt_new_led_strip_encoder() failed");
-
-                initIndStep = IND_INIT::EnableRMTChannel;
-                break;
-
-            ind_createRMTEncoder_err:
-                errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
-                indOP = IND_OP::Error;
-                break;
-            }
-
-            case IND_INIT::EnableRMTChannel:
-            {
-                if (show & _showInit)
-                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::EnableRMTChannel - Step " + std::to_string((int)IND_INIT::EnableRMTChannel));
-
-                ESP_GOTO_ON_ERROR(rmt_enable(led_chan), ind_enableRMTChannel_err, TAG, "rmt_enable() failed");
-
-                static uint8_t led_strip_pixels[3]; // Clear the display
-                memset(led_strip_pixels, 0, sizeof(led_strip_pixels));
-
-                ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_enableRMTChannel_err, TAG, "rmt_transmit() failed");
-                ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_enableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
-
+                if (!rmtEstablished)
+                    ESP_GOTO_ON_ERROR(establishRMTDriver(), ind_startRMTDriver_err, TAG, "establishRMTDriver() failed");
                 initIndStep = IND_INIT::Set_LED_Initial_States;
                 break;
 
-            ind_enableRMTChannel_err:
+            ind_startRMTDriver_err:
                 errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
                 indOP = IND_OP::Error;
                 break;
             }
+
+                /* case IND_INIT::CreateRMTTxChannel:
+                {
+                    if (show & _showInit)
+                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTTxChannel - Step " + std::to_string((int)IND_INIT::CreateRMTTxChannel));
+
+                    // ESP_LOGW(TAG, "RMT_LED_STRIP_GPIO_NUM %d", RMT_LED_STRIP_GPIO_NUM);
+                    // ESP_LOGW(TAG, "RMT_CLK_SRC_DEFAULT %d", RMT_CLK_SRC_DEFAULT);
+                    // ESP_LOGW(TAG, "RMT_LED_STRIP_RESOLUTION_HZ %d", RMT_LED_STRIP_RESOLUTION_HZ);
+
+                    rmt_tx_channel_config_t tx_chan_config = {
+                        (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
+                        RMT_CLK_SRC_DEFAULT,                // selects source clock
+                        RMT_LED_STRIP_RESOLUTION_HZ,        //
+                        64,                                 // Increasing the block size can make the LED less flickering
+                        4,                                  // Set the number of transactions that can be pending in the background
+                        0,                                  // Interrupt Priority
+                        {0, 1, 1, 0},                       // invert_out, with_dma, io_loop_back, io_od_mode
+                    };
+
+                    ESP_GOTO_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), ind_createRMTTxChannel_err, TAG, "rmt_new_tx_channel() failed");
+                    initIndStep = IND_INIT::CreateRMTEncoder;
+                    break;
+
+                ind_createRMTTxChannel_err:
+                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                    indOP = IND_OP::Error;
+                    break;
+                } */
+
+                /* case IND_INIT::CreateRMTEncoder:
+                {
+                    if (show & _showInit)
+                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTEncoder - Step " + std::to_string((int)IND_INIT::CreateRMTEncoder));
+
+                    led_strip_encoder_config_t encoder_config = {
+                        RMT_LED_STRIP_RESOLUTION_HZ,
+                    };
+
+                    ESP_GOTO_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), ind_createRMTEncoder_err, TAG, "rmt_new_led_strip_encoder() failed");
+
+                    initIndStep = IND_INIT::EnableRMTChannel;
+                    break;
+
+                ind_createRMTEncoder_err:
+                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                    indOP = IND_OP::Error;
+                    break;
+                } */
+
+                /* case IND_INIT::EnableRMTChannel:
+                {
+                    if (show & _showInit)
+                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::EnableRMTChannel - Step " + std::to_string((int)IND_INIT::EnableRMTChannel));
+
+                    ESP_GOTO_ON_ERROR(rmt_enable(led_chan), ind_enableRMTChannel_err, TAG, "rmt_enable() failed");
+
+                    static uint8_t led_strip_pixels[3]; // Clear the display
+                    memset(led_strip_pixels, 0, sizeof(led_strip_pixels));
+
+                    ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_enableRMTChannel_err, TAG, "rmt_transmit() failed");
+                    ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_enableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
+
+                    initIndStep = IND_INIT::Set_LED_Initial_States;
+                    break;
+
+                ind_enableRMTChannel_err:
+                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                    indOP = IND_OP::Error;
+                    break;
+                } */
 
             case IND_INIT::Set_LED_Initial_States:
             {
@@ -318,17 +341,17 @@ void Indication::run(void)
 
                 if (aState == LED_STATE::ON) // Now that the RMT driver has been initialized, we just need to set Color channels according to their States.
                     setAndClearColors(COLORA_Bit, 0);
-                else if (aState == LED_STATE::OFF)
+                else
                     setAndClearColors(0, COLORA_Bit);
 
                 if (bState == LED_STATE::ON)
                     setAndClearColors(COLORB_Bit, 0);
-                else if (bState == LED_STATE::OFF)
+                else
                     setAndClearColors(0, COLORB_Bit);
 
                 if (cState == LED_STATE::ON)
                     setAndClearColors(COLORC_Bit, 0);
-                else if (cState == LED_STATE::OFF)
+                else
                     setAndClearColors(0, COLORC_Bit);
 
                 initIndStep = IND_INIT::Early_Release;
@@ -456,9 +479,25 @@ void Indication::run(void)
                     initIndStep = IND_INIT::ColorC_On;
                 else
                 {
-                    initIndStep = IND_INIT::Finished;
+                    initIndStep = IND_INIT::StopRMTDriver;
                     vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
+                break;
+            }
+
+            case IND_INIT::StopRMTDriver:
+            {
+                if (show & _showInit)
+                    routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::StopRMTDriver - Step " + std::to_string((int)IND_INIT::StopRMTDriver));
+
+                if (rmtEstablished)
+                    ESP_GOTO_ON_ERROR(demolishRMTDriver(), ind_stopRMTDriver_err, TAG, "demolishRMTDriver() failed");
+                initIndStep = IND_INIT::Finished;
+                break;
+
+            ind_stopRMTDriver_err:
+                errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+                indOP = IND_OP::Error;
                 break;
             }
 
@@ -494,8 +533,47 @@ void Indication::run(void)
     }
 }
 
+esp_err_t Indication::establishRMTDriver()
+{
+    esp_err_t ret = ESP_OK;
+
+    rmt_tx_channel_config_t tx_chan_config = {
+        (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
+        RMT_CLK_SRC_DEFAULT,                // selects source clock
+        RMT_LED_STRIP_RESOLUTION_HZ,        //
+        64,                                 // Increasing the block size can make the LED less flickering
+        4,                                  // Set the number of transactions that can be pending in the background
+        0,                                  // Interrupt Priority
+        {0, 1, 1, 0},                       // invert_out, with_dma, io_loop_back, io_od_mode
+    };
+
+    ESP_RETURN_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), TAG, "rmt_new_tx_channel() failed");
+
+    led_strip_encoder_config_t encoder_config = {
+        RMT_LED_STRIP_RESOLUTION_HZ,
+    };
+
+    ESP_RETURN_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), TAG, "rmt_new_led_strip_encoder() failed");
+    ESP_RETURN_ON_ERROR(rmt_enable(led_chan), TAG, "rmt_enable() failed");
+    rmtEstablished = true;
+    taskYIELD();
+    return ret;
+}
+
+esp_err_t Indication::demolishRMTDriver()
+{
+    esp_err_t ret = ESP_OK;
+    ESP_RETURN_ON_ERROR(rmt_disable(led_chan), TAG, "rmt_disable() failed");
+    ESP_RETURN_ON_ERROR(rmt_del_encoder(led_encoder), TAG, "rmt_del_encoder() failed");
+    ESP_RETURN_ON_ERROR(rmt_del_channel(led_chan), TAG, "rmt_del_channel() failed");
+    rmtEstablished = false;
+    return ret;
+}
+
 void Indication::startIndication(uint32_t value)
 {
+    esp_err_t ret = ESP_OK;
+
     first_color_target = (0xF0000000 & value) >> 28; // First Color(s) -- We may see any of the color bits set
     first_color_cycles = (0x0F000000 & value) >> 24; // First Color Cycles
 
@@ -507,6 +585,9 @@ void Indication::startIndication(uint32_t value)
 
     first_on_time_counter = on_time;
     second_on_time_counter = on_time;
+
+    if (!rmtEstablished)
+        ESP_GOTO_ON_ERROR(establishRMTDriver(), ind_startIndication_err, TAG, "establishRMTDriver() failed");
 
     // ESP_LOGW(TAG, "First  Color 0x%X Cycles 0x%X", first_color_target, first_color_cycles);
     // ESP_LOGW(TAG, "Second Color 0x%X Cycles 0x%0X", second_color_target, second_color_cycles);
@@ -639,6 +720,11 @@ void Indication::startIndication(uint32_t value)
         indState = IND_STATES::Clear_FirstColor;
         IsIndicating = true;
     }
+    return;
+
+ind_startIndication_err:
+    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
+    indOP = IND_OP::Error;
 }
 
 void Indication::setAndClearColors(uint8_t SetColors, uint8_t ClearColors)

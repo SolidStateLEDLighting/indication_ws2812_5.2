@@ -76,9 +76,10 @@ enum class IND_SHUTDOWN : uint8_t
 enum class IND_INIT : uint8_t
 {
     Start,
-    CreateRMTTxChannel,
-    CreateRMTEncoder,
-    EnableRMTChannel,
+    StartRMTDriver,
+    //CreateRMTTxChannel,
+    //CreateRMTEncoder,
+    //EnableRMTChannel,
     Set_LED_Initial_States,
     Early_Release,
     ColorA_On,
@@ -87,6 +88,7 @@ enum class IND_INIT : uint8_t
     ColorB_Off,
     ColorC_On,
     ColorC_Off,
+    StopRMTDriver,
     Finished,
 };
 
