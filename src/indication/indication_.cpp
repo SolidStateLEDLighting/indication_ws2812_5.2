@@ -41,7 +41,7 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
 
     xSemaphoreTake(semIndEntry, portMAX_DELAY); // Take the semaphore.  This gives us a locking mechanism for initialization.
 
-    initIndStep = IND_INIT::Start; // Allow the object to initialize and then run.
+    indInitStep = IND_INIT::Start; // Allow the object to initialize and then run.
     indOP = IND_OP::Init;
 
     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): runStackSizek: " + std::to_string(runStackSizeK));

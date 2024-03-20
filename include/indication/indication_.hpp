@@ -60,7 +60,7 @@ extern "C"
 
         IND_OP indOP = IND_OP::Run;                        // Object States
         IND_SHUTDOWN indShdnStep = IND_SHUTDOWN::Finished; //
-        IND_INIT initIndStep = IND_INIT::Finished;         //
+        IND_INIT indInitStep = IND_INIT::Finished;         //
         IND_STATES indState = IND_STATES::Idle;            //
 
         /* Indication Variables */

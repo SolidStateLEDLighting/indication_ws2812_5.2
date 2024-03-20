@@ -236,14 +236,14 @@ void Indication::run(void)
 
         case IND_OP::Init:
         {
-            switch (initIndStep)
+            switch (indInitStep)
             {
             case IND_INIT::Start:
             {
                 if (show & _showInit)
                     routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::Start");
 
-                initIndStep = IND_INIT::StartRMTDriver;
+                indInitStep = IND_INIT::StartRMTDriver;
                 [[fallthrough]];
             }
 
@@ -254,7 +254,7 @@ void Indication::run(void)
 
                 if (!rmtEstablished)
                     ESP_GOTO_ON_ERROR(establishRMTDriver(), ind_startRMTDriver_err, TAG, "establishRMTDriver() failed");
-                initIndStep = IND_INIT::Set_LED_Initial_States;
+                indInitStep = IND_INIT::Set_LED_Initial_States;
                 break;
 
             ind_startRMTDriver_err:
@@ -283,7 +283,7 @@ void Indication::run(void)
                     };
 
                     ESP_GOTO_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), ind_createRMTTxChannel_err, TAG, "rmt_new_tx_channel() failed");
-                    initIndStep = IND_INIT::CreateRMTEncoder;
+                    indInitStep = IND_INIT::CreateRMTEncoder;
                     break;
 
                 ind_createRMTTxChannel_err:
@@ -303,7 +303,7 @@ void Indication::run(void)
 
                     ESP_GOTO_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), ind_createRMTEncoder_err, TAG, "rmt_new_led_strip_encoder() failed");
 
-                    initIndStep = IND_INIT::EnableRMTChannel;
+                    indInitStep = IND_INIT::EnableRMTChannel;
                     break;
 
                 ind_createRMTEncoder_err:
@@ -325,7 +325,7 @@ void Indication::run(void)
                     ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_enableRMTChannel_err, TAG, "rmt_transmit() failed");
                     ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_enableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
 
-                    initIndStep = IND_INIT::Set_LED_Initial_States;
+                    indInitStep = IND_INIT::Set_LED_Initial_States;
                     break;
 
                 ind_enableRMTChannel_err:
@@ -354,7 +354,7 @@ void Indication::run(void)
                 else
                     setAndClearColors(0, COLORC_Bit);
 
-                initIndStep = IND_INIT::Early_Release;
+                indInitStep = IND_INIT::Early_Release;
                 break;
             }
 
@@ -368,17 +368,17 @@ void Indication::run(void)
 
                 // If any colors are in the On state, or if ALL colors are in the Off state, then bypass the Flashing of the version numbers.
                 if ((aState == LED_STATE::ON) || (bState == LED_STATE::ON) || (cState == LED_STATE::ON))
-                    initIndStep = IND_INIT::Finished;
+                    indInitStep = IND_INIT::Finished;
                 else if ((aState == LED_STATE::OFF) && (bState == LED_STATE::OFF) && (cState == LED_STATE::OFF))
-                    initIndStep = IND_INIT::Finished;
+                    indInitStep = IND_INIT::Finished;
                 else
                 {
                     cycles = majorVer;
 
                     if (cycles > 0)
-                        initIndStep = IND_INIT::ColorA_On;
+                        indInitStep = IND_INIT::ColorA_On;
                     else
-                        initIndStep = IND_INIT::ColorA_Off;
+                        indInitStep = IND_INIT::ColorA_Off;
                 }
                 break;
             }
@@ -391,7 +391,7 @@ void Indication::run(void)
                 cycles--;
                 setAndClearColors((uint8_t)COLORA_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initIndStep = IND_INIT::ColorA_Off;
+                indInitStep = IND_INIT::ColorA_Off;
                 break;
             }
 
@@ -404,15 +404,15 @@ void Indication::run(void)
                 vTaskDelay(pdMS_TO_TICKS(150));
 
                 if (cycles > 0)
-                    initIndStep = IND_INIT::ColorA_On;
+                    indInitStep = IND_INIT::ColorA_On;
                 else
                 {
                     cycles = minorVer;
 
                     if (cycles > 0)
-                        initIndStep = IND_INIT::ColorB_On;
+                        indInitStep = IND_INIT::ColorB_On;
                     else
-                        initIndStep = IND_INIT::ColorB_Off;
+                        indInitStep = IND_INIT::ColorB_Off;
 
                     vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
@@ -427,7 +427,7 @@ void Indication::run(void)
                 cycles--;
                 setAndClearColors((uint8_t)COLORB_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initIndStep = IND_INIT::ColorB_Off;
+                indInitStep = IND_INIT::ColorB_Off;
                 break;
             }
 
@@ -440,15 +440,15 @@ void Indication::run(void)
                 vTaskDelay(pdMS_TO_TICKS(150));
 
                 if (cycles > 0) //
-                    initIndStep = IND_INIT::ColorB_On;
+                    indInitStep = IND_INIT::ColorB_On;
                 else
                 {
                     cycles = patchNumber;
 
                     if (cycles > 0)
-                        initIndStep = IND_INIT::ColorC_On;
+                        indInitStep = IND_INIT::ColorC_On;
                     else
-                        initIndStep = IND_INIT::ColorC_Off;
+                        indInitStep = IND_INIT::ColorC_Off;
 
                     vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
@@ -463,7 +463,7 @@ void Indication::run(void)
                 cycles--;
                 setAndClearColors((uint8_t)COLORC_Bit, 0);
                 vTaskDelay(pdMS_TO_TICKS(100));
-                initIndStep = IND_INIT::ColorC_Off;
+                indInitStep = IND_INIT::ColorC_Off;
                 break;
             }
 
@@ -476,10 +476,10 @@ void Indication::run(void)
                 vTaskDelay(pdMS_TO_TICKS(150));
 
                 if (cycles > 0)
-                    initIndStep = IND_INIT::ColorC_On;
+                    indInitStep = IND_INIT::ColorC_On;
                 else
                 {
-                    initIndStep = IND_INIT::StopRMTDriver;
+                    indInitStep = IND_INIT::StopRMTDriver;
                     vTaskDelay(pdMS_TO_TICKS(250)); // Off Time
                 }
                 break;
@@ -492,7 +492,7 @@ void Indication::run(void)
 
                 if (rmtEstablished)
                     ESP_GOTO_ON_ERROR(demolishRMTDriver(), ind_stopRMTDriver_err, TAG, "demolishRMTDriver() failed");
-                initIndStep = IND_INIT::Finished;
+                indInitStep = IND_INIT::Finished;
                 break;
 
             ind_stopRMTDriver_err:
