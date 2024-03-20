@@ -5,8 +5,10 @@ This components has been tested with: **ESP-IDF-Advanced-Template-Alpha-5.2**
 **Current Features:**
 * Support for Lower Power and Sleep
 
-**Expected changes to arrive:**   
-I just added changes which allow for low power consumption.  The key to this change is that the RMT Channel and the LED Strip Encoder are created for, and destroyed after, each use.   This addd some extra work each time the components is used, but we gain a power savings in the vast time that elaspes between each LED blink.   And when the System doesn't output any indication at all, then the component is essentially asleep.  As of March 20th, 2024, I am still testing the changes and analysing the naming conventions.
+I just added changes which allow for low power consumption.  The key to this change is that the RMT Channel and the LED Strip Encoder are created for, and destroyed after, each use.   This adds some extra work each time the components is used, but we gain a power savings in the vast time that elaspes between each LED blink.   And when the System doesn't output any indication at all, then the component is essentially asleep.  As of March 20th, 2024, I am still testing the changes and analysing the naming conventions.
+
+**Expected changes to arrive:**  
+No new goals at this moment...
 
 The indication class controls an external RGB LED.  That indicator is an addressable WS2812 LED with it's control pin connected to GPIO 48 (for the DevKitC).
 
