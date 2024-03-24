@@ -10,3 +10,7 @@ This is the primary run function.  For this object, most of its activity is here
 To reduce complexity this **setAndClearColors()** function has been diagrammed separately.  
 ![Indication Flowchart setAndClearColors](./drawings/ind_flowchart_setAndClearColors.svg)  
 ___  
+Here is both the enabling and disabling of the RMT Driver and the LED Strip Encoder.
+![Indication Flowchart establishRMTDriver](./drawings/ind_flowchart_establishRMTDriver.svg)  
+![Indication Flowchart demolishRMTDriver](./drawings/ind_flowchart_demolishRMTDriver.svg) 
+___  

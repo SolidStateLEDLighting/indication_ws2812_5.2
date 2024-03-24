@@ -263,77 +263,6 @@ void Indication::run(void)
                 break;
             }
 
-                /* case IND_INIT::CreateRMTTxChannel:
-                {
-                    if (show & _showInit)
-                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTTxChannel - Step " + std::to_string((int)IND_INIT::CreateRMTTxChannel));
-
-                    // ESP_LOGW(TAG, "RMT_LED_STRIP_GPIO_NUM %d", RMT_LED_STRIP_GPIO_NUM);
-                    // ESP_LOGW(TAG, "RMT_CLK_SRC_DEFAULT %d", RMT_CLK_SRC_DEFAULT);
-                    // ESP_LOGW(TAG, "RMT_LED_STRIP_RESOLUTION_HZ %d", RMT_LED_STRIP_RESOLUTION_HZ);
-
-                    rmt_tx_channel_config_t tx_chan_config = {
-                        (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
-                        RMT_CLK_SRC_DEFAULT,                // selects source clock
-                        RMT_LED_STRIP_RESOLUTION_HZ,        //
-                        64,                                 // Increasing the block size can make the LED less flickering
-                        4,                                  // Set the number of transactions that can be pending in the background
-                        0,                                  // Interrupt Priority
-                        {0, 1, 1, 0},                       // invert_out, with_dma, io_loop_back, io_od_mode
-                    };
-
-                    ESP_GOTO_ON_ERROR(rmt_new_tx_channel(&tx_chan_config, &led_chan), ind_createRMTTxChannel_err, TAG, "rmt_new_tx_channel() failed");
-                    indInitStep = IND_INIT::CreateRMTEncoder;
-                    break;
-
-                ind_createRMTTxChannel_err:
-                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
-                    indOP = IND_OP::Error;
-                    break;
-                } */
-
-                /* case IND_INIT::CreateRMTEncoder:
-                {
-                    if (show & _showInit)
-                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::CreateRMTEncoder - Step " + std::to_string((int)IND_INIT::CreateRMTEncoder));
-
-                    led_strip_encoder_config_t encoder_config = {
-                        RMT_LED_STRIP_RESOLUTION_HZ,
-                    };
-
-                    ESP_GOTO_ON_ERROR(rmt_new_led_strip_encoder(&encoder_config, &led_encoder), ind_createRMTEncoder_err, TAG, "rmt_new_led_strip_encoder() failed");
-
-                    indInitStep = IND_INIT::EnableRMTChannel;
-                    break;
-
-                ind_createRMTEncoder_err:
-                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
-                    indOP = IND_OP::Error;
-                    break;
-                } */
-
-                /* case IND_INIT::EnableRMTChannel:
-                {
-                    if (show & _showInit)
-                        routeLogByValue(LOG_TYPE::INFO, std::string(__func__) + "(): IND_INIT::EnableRMTChannel - Step " + std::to_string((int)IND_INIT::EnableRMTChannel));
-
-                    ESP_GOTO_ON_ERROR(rmt_enable(led_chan), ind_enableRMTChannel_err, TAG, "rmt_enable() failed");
-
-                    static uint8_t led_strip_pixels[3]; // Clear the display
-                    memset(led_strip_pixels, 0, sizeof(led_strip_pixels));
-
-                    ESP_GOTO_ON_ERROR(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config), ind_enableRMTChannel_err, TAG, "rmt_transmit() failed");
-                    ESP_GOTO_ON_ERROR(rmt_tx_wait_all_done(led_chan, portMAX_DELAY), ind_enableRMTChannel_err, TAG, "rmt_tx_wait_all_done() failed");
-
-                    indInitStep = IND_INIT::Set_LED_Initial_States;
-                    break;
-
-                ind_enableRMTChannel_err:
-                    errMsg = std::string(__func__) + "(): " + esp_err_to_name(ret);
-                    indOP = IND_OP::Error;
-                    break;
-                } */
-
             case IND_INIT::Set_LED_Initial_States:
             {
                 if (show & _showInit)
@@ -541,7 +470,7 @@ esp_err_t Indication::establishRMTDriver()
         (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
         RMT_CLK_SRC_DEFAULT,                // selects source clock
         RMT_LED_STRIP_RESOLUTION_HZ,        //
-        64,                                 // Increasing the block size can make the LED less flickering
+        64,                                 // Increasing the block size can make the LED flicker less
         4,                                  // Set the number of transactions that can be pending in the background
         0,                                  // Interrupt Priority
         {0, 1, 1, 0},                       // invert_out, with_dma, io_loop_back, io_od_mode
