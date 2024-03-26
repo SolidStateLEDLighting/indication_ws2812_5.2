@@ -465,7 +465,9 @@ void Indication::run(void)
 esp_err_t Indication::establishRMTDriver()
 {
     esp_err_t ret = ESP_OK;
-
+    //
+    // WARNING: Some processors many NOT support DMA in the configuration below.  If not, just apply a 0 in the correct place.
+    //
     rmt_tx_channel_config_t tx_chan_config = {
         (gpio_num_t)RMT_LED_STRIP_GPIO_NUM, // selects GPIO
         RMT_CLK_SRC_DEFAULT,                // selects source clock

@@ -16,7 +16,7 @@ void Indication::routeLogByRef(LOG_TYPE _type, std::string *_msg)
 {
     routeLogByValue(_type, *_msg); // Make a copy and see if this will work for all use cases where the msg is large.
 
-    if (xSemaphoreTake(semIndRouteLock, portMAX_DELAY)) // We use this lock to prevent sys_evt and wifi_run tasks from having conflicts
+    if (xSemaphoreTake(semIndRouteLock, portMAX_DELAY)) // We use this lock to prevent sys_evt and ind_run tasks from having conflicts
     {
         LOG_TYPE type = _type;   // Copy our parameters upon entry before they are over-written by another calling task.
         std::string *msg = _msg; // This will point back to the caller's variable.
@@ -48,7 +48,7 @@ void Indication::routeLogByRef(LOG_TYPE _type, std::string *_msg)
 
 void Indication::routeLogByValue(LOG_TYPE _type, std::string _msg)
 {
-    if (xSemaphoreTake(semIndRouteLock, portMAX_DELAY)) // We use this lock to prevent sys_evt and wifi_run tasks from having conflicts
+    if (xSemaphoreTake(semIndRouteLock, portMAX_DELAY)) // We use this lock to prevent sys_evt and ind_run tasks from having conflicts
     {
         LOG_TYPE type = _type; // Copy our parameters upon entry before they are over-written by another calling task.
         std::string msg = _msg;

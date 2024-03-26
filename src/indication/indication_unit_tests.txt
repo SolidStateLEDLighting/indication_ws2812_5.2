@@ -40,7 +40,7 @@ case 0: // Destroying indication
             ind = nullptr;                       // Destructor will not set pointer null.  We do that manually.
             ESP_LOGW(TAG, "indication deleted"); //
 
-            taskHandleIndRun = nullptr;       // Reset the wifi handles
+            taskHandleIndRun = nullptr;       // Reset the indication handle
             queHandleIndCmdRequest = nullptr; //
 
             // Note: The indication semaphore is already destroyed - so don't "Give" it or a run time error will occur

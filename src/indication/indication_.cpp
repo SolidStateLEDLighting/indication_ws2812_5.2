@@ -66,7 +66,7 @@ Indication::~Indication()
     taskYIELD();                       // One last yield to make sure Idle task can run.
 
     while (taskHandleRun != nullptr)
-        vTaskDelay(pdMS_TO_TICKS(50)); // Wait for the wifi task handle to become null.
+        vTaskDelay(pdMS_TO_TICKS(50)); // Wait for the indication task handle to become null.
     taskYIELD();                       // One last yield to make sure Idle task can run.
 
     xSemaphoreGive(semIndEntry);
