@@ -99,7 +99,7 @@ void Indication::setLogLevels()
         esp_log_level_set(TAG, ESP_LOG_INFO); // If we have any flags set, we need to be sure to turn on the logging so we can see them.
     else
     {
-        esp_log_level_set(TAG, ESP_LOG_ERROR);    // Alturnatively, we turn down logging for Errors only, if we are not looking for anything else.
+        esp_log_level_set(TAG, ESP_LOG_ERROR);    // Alternatively, we turn down logging for Errors only, if we are not looking for anything else.
         esp_log_level_set("gpio", ESP_LOG_ERROR); // Suppress gpio logging which occurs every time we establish an RMT channel
     }
 
