@@ -95,7 +95,7 @@ void Indication::setShowFlags()
 
 void Indication::setLogLevels()
 {
-    if (show > 0)                             // Normally, we are interested in the variables inside our object.
+    if ((show + showIND) > 0)                 // Normally, we are interested in the variables inside our object.
         esp_log_level_set(TAG, ESP_LOG_INFO); // If we have any flags set, we need to be sure to turn on the logging so we can see them.
     else
     {
