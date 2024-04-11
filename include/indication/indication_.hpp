@@ -48,7 +48,7 @@ extern "C"
         uint8_t show = 0; // Flags
         uint8_t showIND = 0;
 
-        void setShowFlags(void); // Pre-Task Functions
+        void setFlags(void); // Pre-Task Functions
         void setLogLevels(void);
         void createSemaphores(void);
         void destroySemaphores(void);

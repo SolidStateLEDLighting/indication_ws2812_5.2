@@ -33,7 +33,7 @@ Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNu
         xSemaphoreGive(semSysEntry);
     }
 
-    setShowFlags();            // Static enabling of logging statements for any area of concern during development.
+    setFlags();            // Static enabling of logging statements for any area of concern during development.
     setLogLevels();            // Manually sets log levels for tasks down the call stack for development.
     createSemaphores();        // Creates any locking semaphores owned by this object.
     createQueues();            // We use a queue to received command requests.
@@ -75,7 +75,7 @@ Indication::~Indication()
 }
 
 /* Construction Functions */
-void Indication::setShowFlags()
+void Indication::setFlags()
 {
     // show variable is system wide defined and this exposes for viewing any general processes.
     show = 0; // Set show flags
