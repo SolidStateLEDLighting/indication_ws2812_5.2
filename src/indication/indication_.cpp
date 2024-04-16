@@ -8,7 +8,7 @@ extern SemaphoreHandle_t semSysEntry;
 extern SemaphoreHandle_t semNVSEntry;
 extern SemaphoreHandle_t semIndRouteLock;
 
-/* Construction/Destruction */
+/* Construction / Destruction */
 Indication::Indication(uint8_t myMajorVer, uint8_t myMinorVer, uint8_t myPatchNumber)
 {
     // Process of creating this object:
