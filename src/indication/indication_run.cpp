@@ -10,9 +10,8 @@ extern SemaphoreHandle_t semIndEntry;
 void Indication::runMarshaller(void *arg)
 {
     ((Indication *)arg)->run();
-    
-    ((Indication *)arg)->taskHandleRun = nullptr;
-    vTaskDelete(((Indication *)arg)->taskHandleRun);
+    ((Indication *)arg)->taskHandleRun = nullptr; // This doesn't happen automatically but we look at this variable for validity, so set it manually.
+    vTaskDelete(NULL);
 }
 
 void Indication::run(void)
